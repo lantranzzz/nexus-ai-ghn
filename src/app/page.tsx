@@ -1,0 +1,403 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Header from '@/components/Header';
+import SettingsSidebar, { ApiKeys } from '@/components/SettingsSidebar';
+import ModelSelection from '@/components/ModelSelection';
+import ResearchForm from '@/components/ResearchForm';
+import PromptReview from '@/components/PromptReview';
+import ReportView from '@/components/ReportView';
+import { getResearches, ResearchData, isSupabaseConfigured } from '@/lib/supabase';
+import { 
+  Sparkles, Clock, History, FileText, Database, 
+  HelpCircle, ChevronRight, AlertTriangle, ShieldCheck 
+} from 'lucide-react';
+
+export default function Home() {
+  // Trạng thái Sidebar Cấu hình
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  // Dữ liệu Form
+  const [goal, setGoal] = useState<string>('');
+  const [competitors, setCompetitors] = useState<string>('');
+  const [metrics, setMetrics] = useState<string>('');
+
+  // Lựa chọn Model mặc định
+  const [selectedSearchModels, setSelectedSearchModels] = useState<string[]>([
+    'Perplexity (llama-3.1-sonar-large-online)',
+    'DeepSeek (deepseek-chat)',
+    'Moonshot AI (kimi-api)'
+  ]);
+  const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
+    'Anthropic (claude-3-5-sonnet)'
+  );
+
+  // Tiến trình Orchestration
+  // 'form' | 'planning' | 'prompts' | 'researching' | 'result'
+  const [step, setStep] = useState<'form' | 'planning' | 'prompts' | 'researching' | 'result'>('form');
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
+  
+  // Dữ liệu tạo bởi AI
+  const [prompts, setPrompts] = useState<Record<string, string>>({});
+  const [planningSummary, setPlanningSummary] = useState<string>('');
+  const [report, setReport] = useState<string>('');
+  const [sources, setSources] = useState<{ title: string; url: string }[]>([]);
+  const [isReportMocked, setIsReportMocked] = useState<boolean>(false);
+
+  // Lịch sử nghiên cứu đã lưu
+  const [history, setHistory] = useState<ResearchData[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
+  const [dbStatusText, setDbStatusText] = useState<string>('LocalStorage');
+
+  // Khởi chạy: Tải lịch sử & kiểm tra DB
+  const loadHistory = async () => {
+    setIsLoadingHistory(true);
+    const res = await getResearches();
+    if (res.success) {
+      setHistory(res.data);
+      setDbStatusText(res.isLocalFallback ? 'Cục bộ (LocalStorage)' : 'Đồng bộ Cloud Supabase');
+    }
+    setIsLoadingHistory(false);
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  // Lấy các API Keys từ LocalStorage khi cần gọi API
+  const getStoredApiKeys = (): ApiKeys => {
+    const rawKeys = localStorage.getItem('nexusai_api_keys');
+    if (rawKeys) {
+      try {
+        return JSON.parse(rawKeys);
+      } catch (e) {
+        console.error('Lỗi parse API keys:', e);
+      }
+    }
+    return {
+      openai: '',
+      anthropic: '',
+      google: '',
+      perplexity: '',
+      deepseek: '',
+      moonshot: '',
+    };
+  };
+
+  // GIAI ĐOẠN 1: LẬP KẾ HOẠCH & SINH PROMPTS
+  const handlePlanResearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStep('planning');
+    setLoadingMessage('Đang kết nối Model Tổng Biên Tập để lập kế hoạch & tối ưu prompt...');
+
+    const apiKeys = getStoredApiKeys();
+
+    try {
+      const response = await fetch('/api/orchestrate/plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: { goal, competitors, metrics },
+          synthesisModel: selectedSynthesisModel,
+          searchModels: selectedSearchModels,
+          apiKeys
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Lỗi máy chủ: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPrompts(data.prompts || {});
+      setPlanningSummary(data.planning_summary || '');
+      setIsReportMocked(!!data.isMocked);
+      setStep('prompts');
+    } catch (err: any) {
+      console.error(err);
+      alert(`Đã xảy ra lỗi lập kế hoạch: ${err.message}`);
+      setStep('form');
+    }
+  };
+
+  // GIAI ĐOẠN 2: THỰC THI API SONG SONG & BIÊN SOẠN TỔNG HỢP
+  const handleExecuteResearch = async () => {
+    setStep('researching');
+    setLoadingMessage('Bắt đầu gọi API song song các model Tìm Tin (Search)...');
+
+    const apiKeys = getStoredApiKeys();
+
+    // Giả lập cập nhật trạng thái hiển thị cho mượt mà
+    const progressMessages = [
+      'Bắt đầu gọi API song song tới các model Tìm Tin (Search)...',
+      'Đang truy tìm dữ liệu logistics toàn cầu (Perplexity)...',
+      'Đang khai thác dữ liệu chuỗi cung ứng thông minh từ Trung Quốc (Kimi)...',
+      'Đang phân tích cấu trúc chi phí & lập luận toán học (DeepSeek)...',
+      'Đã thu thập dữ liệu thô. Đang chuyển giao cho Model Tổng Biên Tập...',
+      'Tổng Biên Tập đang dịch các thuật ngữ chuyên ngành tiếng Anh/Trung sang Việt...',
+      'Tổng Biên Tập đang đối chiếu fact-check mâu thuẫn dữ liệu...',
+      'Đang biên soạn báo cáo phân tích chiến lược cuối cùng...'
+    ];
+
+    let msgIndex = 0;
+    const interval = setInterval(() => {
+      if (msgIndex < progressMessages.length - 1) {
+        msgIndex++;
+        setLoadingMessage(progressMessages[msgIndex]);
+      }
+    }, 4000);
+
+    try {
+      const response = await fetch('/api/orchestrate/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: { goal, competitors, metrics },
+          synthesisModel: selectedSynthesisModel,
+          searchModels: selectedSearchModels,
+          approvedPrompts: prompts,
+          apiKeys
+        }),
+      });
+
+      clearInterval(interval);
+
+      if (!response.ok) {
+        throw new Error(`Lỗi máy chủ: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setReport(data.report || '');
+      setSources(data.sources || []);
+      setIsReportMocked(!!data.isMocked);
+      setStep('result');
+      
+      // Tải lại lịch sử nghiên cứu
+      loadHistory();
+    } catch (err: any) {
+      clearInterval(interval);
+      console.error(err);
+      alert(`Đã xảy ra lỗi thực thi nghiên cứu: ${err.message}`);
+      setStep('prompts');
+    }
+  };
+
+  // Tải lại nghiên cứu lịch sử
+  const handleLoadHistoryItem = (item: ResearchData) => {
+    setGoal(item.query.goal);
+    setCompetitors(item.query.competitors);
+    setMetrics(item.query.metrics);
+    setPrompts(item.research_prompts);
+    setSelectedSearchModels(item.search_models);
+    setSelectedSynthesisModel(item.synthesis_model);
+    setReport(item.final_report);
+    setSources(item.sources);
+    setIsReportMocked(false); // Đã lưu vào DB coi như là báo cáo hoàn chỉnh
+    setStep('result');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleReset = () => {
+    setGoal('');
+    setCompetitors('');
+    setMetrics('');
+    setPrompts({});
+    setReport('');
+    setSources([]);
+    setStep('form');
+  };
+
+  return (
+    <div className="flex-1 flex flex-col min-h-screen">
+      
+      {/* Header GHN */}
+      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        {/* Loading / Progress State */}
+        {(step === 'planning' || step === 'researching') && (
+          <div className="bg-white p-12 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-orange-100 border-t-[#F58220] rounded-full animate-spin-fast" />
+              <Sparkles className="w-6 h-6 text-[#F58220] absolute inset-0 m-auto animate-pulse" />
+            </div>
+            
+            <div className="space-y-2 max-w-lg">
+              <h3 className="text-base md:text-lg font-bold text-gray-800">
+                {step === 'planning' ? 'Đang Thiết Lập Kế Hoạch Nghiên Cứu' : 'Đang Điều Phối Hai Giai Đoạn'}
+              </h3>
+              <p className="text-xs md:text-sm text-gray-500 font-medium">
+                {loadingMessage}
+              </p>
+            </div>
+
+            <div className="w-full max-w-xs bg-gray-100 h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-[#F58220] h-full transition-all duration-1000" 
+                style={{ 
+                  width: step === 'planning' ? '40%' : '75%',
+                  animation: 'pulse 1.5s infinite'
+                }} 
+              />
+            </div>
+          </div>
+        )}
+
+        {/* STEP 1 & 2: FORM NHẬP LIỆU & MODEL SELECTION */}
+        {step === 'form' && (
+          <div className="space-y-8">
+            
+            {/* Giới thiệu tính năng */}
+            <div className="bg-gradient-to-r from-orange-50 to-white p-6 rounded-2xl border border-orange-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+              <div className="space-y-1">
+                <h2 className="text-lg md:text-xl font-black text-gray-800 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#F58220]" />
+                  NexusAI: Nền Tảng Nghiên Cứu Đối Thủ Cạnh Tranh & Chiến Lược
+                </h2>
+                <p className="text-xs text-gray-600 leading-relaxed max-w-3xl">
+                  Dành riêng cho <strong>Strategy Manager Giao Hàng Nhanh (GHN)</strong>. Ứng dụng điều phối hai giai đoạn chuyên sâu: Lập kế hoạch sinh prompt bằng mô hình Tổng biên tập thượng tầng, chạy song song tìm kiếm dữ liệu thị trường và dịch thuật, fact-check biên soạn thành báo cáo hoàn chỉnh.
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <span className="text-[11px] font-bold px-3 py-1.5 bg-[#F58220] text-white rounded-full shadow-sm flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Chuẩn Thương Hiệu GHN
+                </span>
+              </div>
+            </div>
+
+            {/* Cấu hình Models */}
+            <ModelSelection
+              selectedSearchModels={selectedSearchModels}
+              setSelectedSearchModels={setSelectedSearchModels}
+              selectedSynthesisModel={selectedSynthesisModel}
+              setSelectedSynthesisModel={setSelectedSynthesisModel}
+            />
+
+            {/* Form Nghiên cứu */}
+            <ResearchForm
+              goal={goal}
+              setGoal={setGoal}
+              competitors={competitors}
+              setCompetitors={setCompetitors}
+              metrics={metrics}
+              setMetrics={setMetrics}
+              onSubmit={handlePlanResearch}
+              isLoading={false}
+            />
+
+            {/* BẢNG LỊCH SỬ NGHIÊN CỨU CHIẾN LƯỢC */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 space-y-4">
+              <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-[#F58220]" />
+                  <h3 className="font-bold text-gray-800 text-sm md:text-base">Lịch Sử Nghiên Cứu ({history.length})</h3>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
+                  <Database className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Database: <strong>{dbStatusText}</strong></span>
+                </div>
+              </div>
+
+              {isLoadingHistory ? (
+                <div className="text-center py-8 text-xs text-gray-500">Đang tải lịch sử...</div>
+              ) : history.length === 0 ? (
+                <div className="text-center py-10 border-2 border-dashed border-gray-100 rounded-xl">
+                  <p className="text-xs text-gray-400">Chưa có phân tích chiến lược nào được lưu trữ.</p>
+                  <p className="text-[10px] text-gray-400 mt-1">Các báo cáo sau khi hoàn tất bấm 'Lưu vào Database' sẽ xuất hiện ở đây.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {history.map((item) => (
+                    <div 
+                      key={item.id}
+                      onClick={() => handleLoadHistoryItem(item)}
+                      className="p-4 rounded-xl border border-gray-200 hover:border-[#F58220] hover:bg-orange-50/20 cursor-pointer transition-all flex flex-col justify-between space-y-3 group"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-gray-400 flex items-center gap-1 font-mono">
+                            <Clock className="w-3 h-3" />
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : ''}
+                          </span>
+                          <span className="text-[9px] font-bold text-[#F58220] bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
+                            {item.synthesis_model.split(' ')[0]}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-[#F58220] transition-colors">
+                          {item.query.goal}
+                        </h4>
+                        <p className="text-[10px] text-gray-500 line-clamp-2">
+                          <strong>Đối thủ:</strong> {item.query.competitors}
+                        </p>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
+                        <span>{item.search_models.length} Search Bots</span>
+                        <span className="font-semibold text-[#F58220] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                          Xem báo cáo
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        )}
+
+        {/* STEP 3: DUYỆT PROMPTS */}
+        {step === 'prompts' && (
+          <PromptReview
+            prompts={prompts}
+            setPrompts={setPrompts}
+            planningSummary={planningSummary}
+            onBack={() => setStep('form')}
+            onConfirm={handleExecuteResearch}
+            isLoading={false}
+            isMocked={isReportMocked}
+          />
+        )}
+
+        {/* STEP 4: KẾT QUẢ BÁO CÁO CỐT LÕI */}
+        {step === 'result' && (
+          <ReportView
+            report={report}
+            sources={sources}
+            query={{ goal, competitors, metrics }}
+            searchModels={selectedSearchModels}
+            synthesisModel={selectedSynthesisModel}
+            prompts={prompts}
+            isMocked={isReportMocked}
+            onReset={handleReset}
+          />
+        )}
+
+      </main>
+
+      {/* Settings Drawer */}
+      <SettingsSidebar 
+        isOpen={isSettingsOpen} 
+        onClose={() => {
+          setIsSettingsOpen(false);
+          loadHistory(); // Load lại history ngộ nhỡ env thay đổi
+        }} 
+      />
+
+      {/* Footer bản quyền GHN */}
+      <footer className="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-500 mt-12">
+        <p className="font-semibold text-gray-600">GHN Research Tool - NexusAI Platform</p>
+        <p className="mt-1">Bản quyền thuộc về Giao Hàng Nhanh (GHN) © 2026. Nghiêm cấm sao chép dữ liệu phân tích ra ngoài hệ thống doanh nghiệp.</p>
+      </footer>
+
+    </div>
+  );
+}
