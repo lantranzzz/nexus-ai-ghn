@@ -43,7 +43,7 @@ export default function ResearchForm({
   const isFormValid = goal.trim() !== '' && competitors.trim() !== '' && metrics.trim() !== '';
 
   return (
-    <form onSubmit={onSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-gray-100 space-y-6 animate-fade">
+    <form onSubmit={onSubmit} className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-8 animate-fade">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
         <div>

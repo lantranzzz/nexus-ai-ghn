@@ -222,7 +222,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <TopNav />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-20">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 space-y-10 pb-20">
         
         {/* Loading / Progress State */}
         {(step === 'planning' || step === 'researching') && (
@@ -255,7 +255,7 @@ export default function Home() {
 
         {/* STEP 1 & 2: FORM NHẬP LIỆU & MODEL SELECTION */}
         {step === 'form' && (
-          <div className="space-y-8">
+          <div className="space-y-12">
             
             {/* Giới thiệu tính năng */}
             <div className="bg-gradient-to-r from-orange-50 to-white p-6 rounded-2xl border border-orange-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -297,7 +297,7 @@ export default function Home() {
             />
 
             {/* BẢNG LỊCH SỬ NGHIÊN CỨU CHIẾN LƯỢC */}
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 space-y-4">
+            <div className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-6">
               <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
                   <History className="w-5 h-5 text-[#F58220]" />
