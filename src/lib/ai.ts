@@ -32,7 +32,7 @@ export const callOpenAI = async (
           ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
+        ...(model.includes('o1') || model.includes('o3') || model.includes('o4') || model.includes('gpt-5.5-pro') ? {} : { temperature: 0.3 }),
       }),
     });
 
