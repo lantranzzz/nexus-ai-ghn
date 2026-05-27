@@ -125,7 +125,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error(`Lỗi máy chủ: ${response.status}`);
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Lỗi máy chủ: ${response.status}`);
       }
 
       const data = await response.json();
@@ -198,7 +199,8 @@ export default function Home() {
       clearInterval(interval);
 
       if (!response.ok) {
-        throw new Error(`Lỗi máy chủ: ${response.status}`);
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Lỗi máy chủ: ${response.status}`);
       }
 
       const data = await response.json();
