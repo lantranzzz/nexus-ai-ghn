@@ -21,7 +21,7 @@ const generateMockPlan = (goal: string, competitors: string, metrics: string, se
   
   searchModels.forEach(model => {
     if (model.includes('Moonshot') || model.includes('Kimi') || model.includes('DeepSeek')) {
-      prompts[model] = `请进行深入研究并严格用中文回复。
+      prompts[model] = `请进行深入研究并严格用中文回复。(Note: The inputs below might be in Vietnamese, please translate and understand them internally)
 研究主题: "${goal}"
 竞争对手/目标分析: "${competitors}"
 核心关注维度: "${metrics}"
@@ -32,7 +32,7 @@ const generateMockPlan = (goal: string, competitors: string, metrics: string, se
 2. 针对此类竞争对手的最新中资背景物流企业的出海策略及价格战应对策略。
 请使用中文输出，并附带权威行业报告链接或参考来源。`;
     } else {
-      prompts[model] = `Please conduct an in-depth research and reply strictly in English.
+      prompts[model] = `Please conduct an in-depth research and reply strictly in English. (Note: The inputs below might be in Vietnamese, please translate and understand them internally before searching)
 Goal: "${goal}"
 Competitors: "${competitors}"
 Metrics: "${metrics}"
@@ -121,9 +121,9 @@ ${searchModels.map(m => `- ${m}`).join('\n')}
 Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Chatbot Tool. BẠN PHẢI tối ưu hóa để người dùng Copy-Paste những prompt này vào ChatGPT/Perplexity/Kimi.
 Lưu ý đặc biệt:
 - YÊU CẦU BẮT BUỘC CHUNG: BẠN PHẢI thêm lệnh này vào mọi prompt: "BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong văn bản theo định dạng [Source](URL) tại bất kỳ chỗ nào bạn đưa ra số liệu hoặc thông tin. KHÔNG ĐƯỢC CHỈ ĐỂ LINK Ở CUỐI BÀI. Tôi cần copy paste kết quả của bạn nên link phải nằm ngay trong text."
-- Nếu tên chatbot chứa "OpenAI", "GPT", "Anthropic", "Claude", "Google", "Gemini", hoặc "Perplexity": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG ANH (English). Phải bắt đầu prompt bằng câu: "Please conduct an in-depth research and reply strictly in English."
-- Nếu tên chatbot chứa "DeepSeek", "Moonshot", hoặc "Kimi": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG TRUNG (Chinese). Phải bắt đầu prompt bằng câu: "请进行深入研究并严格用中文回复。"
-- TUYỆT ĐỐI KHÔNG SỬ DỤNG TIẾNG VIỆT TRONG BẤT KỲ PROMPT NÀO. Tiếng Việt chỉ được sử dụng ở phần "planning_summary".`;
+- Nếu tên chatbot chứa "OpenAI", "GPT", "Anthropic", "Claude", "Google", "Gemini", hoặc "Perplexity": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG ANH (English). Phải bắt đầu prompt bằng câu: "Please conduct an in-depth research and reply strictly in English." Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Goal, Context, Competitors, Metrics, Constraints) sang Tiếng Anh.
+- Nếu tên chatbot chứa "DeepSeek", "Moonshot", hoặc "Kimi": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG TRUNG (Chinese). Phải bắt đầu prompt bằng câu: "请进行深入研究并严格用中文回复。" Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Goal, Context, Competitors, Metrics, Constraints) sang Tiếng Trung.
+- TUYỆT ĐỐI KHÔNG SỬ DỤNG TIẾNG VIỆT TRONG BẤT KỲ PROMPT NÀO (kể cả khi trích dẫn các đầu vào của người dùng, bạn cũng phải dịch chúng sang ngôn ngữ đích tương ứng). Tiếng Việt chỉ được sử dụng duy nhất ở trường "planning_summary".`;
 
     try {
       const response = await callAIProvider(provider, modelName, synthesisApiKey, userPrompt, systemPrompt);
