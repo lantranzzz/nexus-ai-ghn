@@ -28,12 +28,12 @@ export default function Home() {
 
   // Lựa chọn Model mặc định
   const [selectedSearchModels, setSelectedSearchModels] = useState<string[]>([
-    'Perplexity (llama-3.1-sonar-large-online)',
+    'Perplexity (sonar-pro)',
     'DeepSeek (deepseek-chat)',
     'Moonshot AI (kimi-api)'
   ]);
   const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
-    'Anthropic (claude-3-5-sonnet)'
+    'OpenAI (gpt-5.5)'
   );
 
   // Tiến trình Orchestration

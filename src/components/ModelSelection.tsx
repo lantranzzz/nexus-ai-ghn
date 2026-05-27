@@ -9,21 +9,23 @@ interface ModelSelectionProps {
 }
 
 export const SEARCH_MODELS = [
+  { id: 'openai-gpt-5.5', name: 'OpenAI (gpt-5.5)', provider: 'OpenAI', desc: 'Mô hình siêu việt mới nhất' },
+  { id: 'openai-gpt-5.5-mini', name: 'OpenAI (gpt-5.5-mini)', provider: 'OpenAI', desc: 'Nhanh gọn, tiết kiệm chi phí, thông minh' },
   { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', desc: 'Mô hình đa nhiệm chuẩn cao' },
-  { id: 'openai-gpt-4o-mini', name: 'OpenAI (gpt-4o-mini)', provider: 'OpenAI', desc: 'Nhanh gọn, tiết kiệm chi phí' },
   { id: 'anthropic-claude-3-5-haiku', name: 'Anthropic (claude-3-5-haiku)', provider: 'Anthropic', desc: 'Lập luận nhanh và xuất sắc' },
-  { id: 'google-gemini-1.5-flash', name: 'Google (gemini-1.5-flash)', provider: 'Google', desc: 'Xử lý ngữ cảnh cực lớn' },
-  { id: 'perplexity-sonar', name: 'Perplexity (llama-3.1-sonar-large-online)', provider: 'Perplexity', desc: 'Tìm kiếm web thời gian thực' },
+  { id: 'google-gemini-2.0-flash', name: 'Google (gemini-2.0-flash)', provider: 'Google', desc: 'Xử lý ngữ cảnh cực lớn thế hệ 2' },
+  { id: 'perplexity-sonar-pro', name: 'Perplexity (sonar-pro)', provider: 'Perplexity', desc: 'Tìm kiếm web siêu cấp thời gian thực' },
   { id: 'deepseek-chat', name: 'DeepSeek (deepseek-chat)', provider: 'DeepSeek', desc: 'Lập luận logic toán học sâu' },
   { id: 'moonshot-kimi', name: 'Moonshot AI (kimi-api)', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu tiếng Trung siêu mạnh' }
 ];
 
 export const SYNTHESIS_MODELS = [
-  { id: 'anthropic-claude-3-5-sonnet', name: 'Anthropic (claude-3-5-sonnet)', provider: 'Anthropic', label: 'Claude 3.5 Sonnet - Lựa chọn số 1 về chiến lược' },
-  { id: 'anthropic-claude-3-opus', name: 'Anthropic (claude-3-opus)', provider: 'Anthropic', label: 'Claude 3 Opus - Lập luận học thuật chuyên sâu' },
+  { id: 'openai-gpt-5.5', name: 'OpenAI (gpt-5.5)', provider: 'OpenAI', label: 'GPT-5.5 - Trí tuệ siêu việt mới nhất' },
+  { id: 'anthropic-claude-4-sonnet', name: 'Anthropic (claude-4-sonnet)', provider: 'Anthropic', label: 'Claude 4 Sonnet - Lựa chọn số 1 về tư duy chiến lược' },
+  { id: 'anthropic-claude-4-opus', name: 'Anthropic (claude-4-opus)', provider: 'Anthropic', label: 'Claude 4 Opus - Lập luận học thuật chuyên sâu' },
   { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', label: 'GPT-4o - Tổng hợp dữ liệu đa năng' },
-  { id: 'openai-o1-mini', name: 'OpenAI (o1-mini)', provider: 'OpenAI', label: 'OpenAI o1-mini - Suy nghĩ lập luận từng bước' },
-  { id: 'google-gemini-1.5-pro', name: 'Google (gemini-1.5-pro)', provider: 'Google', label: 'Gemini 1.5 Pro - Phân tích tài liệu toàn diện' }
+  { id: 'openai-o3-mini', name: 'OpenAI (o3-mini)', provider: 'OpenAI', label: 'OpenAI o3-mini - Suy nghĩ lập luận siêu tốc' },
+  { id: 'google-gemini-2.0-pro', name: 'Google (gemini-2.0-pro)', provider: 'Google', label: 'Gemini 2.0 Pro - Phân tích tài liệu toàn diện' }
 ];
 
 export default function ModelSelection({
