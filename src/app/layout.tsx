@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   title: "NexusAI - GHN Research Tool",
   description: "Hệ thống nghiên cứu chiến lược tự động đa mô hình dành riêng cho Giao Hàng Nhanh (GHN)",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{

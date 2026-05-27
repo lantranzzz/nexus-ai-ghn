@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Header from '@/components/Header';
+import Sidebar from '@/components/Sidebar';
+import TopNav from '@/components/TopNav';
 import SettingsSidebar, { ApiKeys } from '@/components/SettingsSidebar';
 import ModelSelection from '@/components/ModelSelection';
 import ResearchForm from '@/components/ResearchForm';
@@ -212,13 +213,16 @@ export default function Home() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen">
+    <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
       
-      {/* Header GHN */}
-      <Header onOpenSettings={() => setIsSettingsOpen(true)} />
+      {/* Sidebar Navigation */}
+      <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <TopNav />
+
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-20">
         
         {/* Loading / Progress State */}
         {(step === 'planning' || step === 'researching') && (
@@ -381,7 +385,8 @@ export default function Home() {
           />
         )}
 
-      </main>
+        </main>
+      </div>
 
       {/* Settings Drawer */}
       <SettingsSidebar 
@@ -391,13 +396,6 @@ export default function Home() {
           loadHistory(); // Load lại history ngộ nhỡ env thay đổi
         }} 
       />
-
-      {/* Footer bản quyền GHN */}
-      <footer className="bg-white border-t border-gray-200 py-6 text-center text-xs text-gray-500 mt-12">
-        <p className="font-semibold text-gray-600">GHN Research Tool - NexusAI Platform</p>
-        <p className="mt-1">Bản quyền thuộc về Giao Hàng Nhanh (GHN) © 2026. Nghiêm cấm sao chép dữ liệu phân tích ra ngoài hệ thống doanh nghiệp.</p>
-      </footer>
-
     </div>
   );
 }

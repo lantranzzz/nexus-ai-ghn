@@ -280,18 +280,21 @@ export async function POST(req: Request) {
     let synthApiKeyName = '';
     let synthModelKey = '';
 
+    const synthMatch = synthesisModel.match(/\(([^)]+)\)/);
+    const rawSynthModel = synthMatch ? synthMatch[1] : synthesisModel;
+
     if (synthesisModel.includes('claude')) {
       synthProvider = 'anthropic';
       synthApiKeyName = 'anthropic';
-      synthModelKey = synthesisModel;
+      synthModelKey = rawSynthModel;
     } else if (synthesisModel.includes('gpt') || synthesisModel.includes('o1')) {
       synthProvider = 'openai';
       synthApiKeyName = 'openai';
-      synthModelKey = synthesisModel;
+      synthModelKey = rawSynthModel;
     } else if (synthesisModel.includes('gemini')) {
       synthProvider = 'google';
       synthApiKeyName = 'google';
-      synthModelKey = synthesisModel;
+      synthModelKey = rawSynthModel;
     }
 
     const synthKey = apiKeys[synthApiKeyName];

@@ -90,18 +90,21 @@ export async function POST(req: Request) {
     let apiKeyName = '';
     let modelName = '';
 
+    const modelMatch = synthesisModel.match(/\(([^)]+)\)/);
+    const rawModelName = modelMatch ? modelMatch[1] : synthesisModel;
+
     if (synthesisModel.includes('claude')) {
       provider = 'anthropic';
       apiKeyName = 'anthropic';
-      modelName = synthesisModel;
+      modelName = rawModelName;
     } else if (synthesisModel.includes('gpt') || synthesisModel.includes('o1')) {
       provider = 'openai';
       apiKeyName = 'openai';
-      modelName = synthesisModel;
+      modelName = rawModelName;
     } else if (synthesisModel.includes('gemini')) {
       provider = 'google';
       apiKeyName = 'google';
-      modelName = synthesisModel;
+      modelName = rawModelName;
     }
 
     const synthesisApiKey = apiKeys[apiKeyName] || '';
