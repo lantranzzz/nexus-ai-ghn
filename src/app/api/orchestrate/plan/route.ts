@@ -144,10 +144,9 @@ ${searchModels.map(m => `- ${m}`).join('\n')}
 Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Chatbot Tool. BẠN PHẢI tối ưu hóa để người dùng Copy-Paste những prompt này vào ChatGPT/Perplexity/Kimi.
 Lưu ý đặc biệt:
 - YÊU CẦU BẮT BUỘC CHUNG: BẠN PHẢI thêm lệnh này vào mọi prompt: "BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong văn bản theo định dạng [Source](URL) tại bất kỳ chỗ nào bạn đưa ra số liệu hoặc thông tin. KHÔNG ĐƯỢC CHỈ ĐỂ LINK Ở CUỐI BÀI. Tôi cần copy paste kết quả của bạn nên link phải nằm ngay trong text."
-- Nếu có "Moonshot AI" hoặc "Kimi": Viết prompt bằng Tiếng Trung nhắm vào việc khai thác thông tin kho bãi, logistics từ nguồn Trung Quốc.
-- Nếu có "Perplexity": Viết prompt bằng Tiếng Anh học thuật chất lượng cao kèm các yêu cầu trích dẫn số liệu thị trường mới nhất.
-- Nếu có "DeepSeek": Viết prompt yêu cầu lập luận chuyên sâu về tối ưu chặng cuối hoặc chi phí.
-- Các model khác: Viết prompt bằng Tiếng Việt tập trung thu thập dữ liệu cấu trúc dịch vụ và thế mạnh cạnh tranh.`;
+- Nếu là các Chatbot phương Tây (OpenAI/ChatGPT, Anthropic/Claude, Google/Gemini, Perplexity): BẠN PHẢI VIẾT PROMPT BẰNG TIẾNG ANH (English). Trong prompt, hãy yêu cầu Chatbot đó PHẢI trả lời bằng tiếng Anh.
+- Nếu là các Chatbot Trung Quốc (DeepSeek, Moonshot/Kimi): BẠN PHẢI VIẾT PROMPT BẰNG TIẾNG TRUNG (Chinese). Trong prompt, hãy yêu cầu Chatbot đó PHẢI trả lời bằng tiếng Trung.
+- KHÔNG dùng Tiếng Việt trong các prompt gửi cho Chatbot. Việc dịch sang Tiếng Việt và tổng hợp sẽ do một Model Tổng Hợp làm ở bước sau.`;
 
     try {
       const response = await callAIProvider(provider, modelName, synthesisApiKey, userPrompt, systemPrompt);

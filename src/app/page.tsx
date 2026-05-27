@@ -35,7 +35,6 @@ export default function Home() {
   const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
     'Anthropic (claude-3-5-sonnet)'
   );
-  const [isDeepResearch, setIsDeepResearch] = useState<boolean>(false);
 
   // Tiến trình Orchestration
   // 'form' | 'planning' | 'prompts' | 'manual_input' | 'researching' | 'result'
@@ -107,8 +106,7 @@ export default function Home() {
           query: { context, goal, competitors, metrics, constraints },
           synthesisModel: selectedSynthesisModel,
           searchModels: selectedSearchModels,
-          apiKeys,
-          isDeepResearch
+          apiKeys
         }),
       });
 
@@ -166,8 +164,7 @@ export default function Home() {
           synthesisModel: selectedSynthesisModel,
           searchModels: selectedSearchModels,
           rawInputs,
-          apiKeys,
-          isDeepResearch
+          apiKeys
         }),
       });
 
@@ -288,8 +285,6 @@ export default function Home() {
               setSelectedSearchModels={setSelectedSearchModels}
               selectedSynthesisModel={selectedSynthesisModel}
               setSelectedSynthesisModel={setSelectedSynthesisModel}
-              isDeepResearch={isDeepResearch}
-              setIsDeepResearch={setIsDeepResearch}
             />
 
             {/* Form Nghiên cứu */}
