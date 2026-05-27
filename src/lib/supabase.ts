@@ -18,13 +18,16 @@ export interface ResearchData {
   id?: string;
   created_at?: string;
   query: {
+    context: string;
     goal: string;
     competitors: string;
     metrics: string;
+    constraints: string;
   };
   research_prompts: Record<string, string>;
   search_models: string[];
   synthesis_model: string;
+  raw_inputs?: Record<string, string>;
   final_report: string;
   sources: { title: string; url: string; snippet?: string }[];
 }
@@ -41,6 +44,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
             research_prompts: data.research_prompts,
             search_models: data.search_models,
             synthesis_model: data.synthesis_model,
+            raw_inputs: data.raw_inputs || null,
             final_report: data.final_report,
             sources: data.sources
           }

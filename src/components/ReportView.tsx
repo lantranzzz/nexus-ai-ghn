@@ -14,13 +14,16 @@ interface ReportViewProps {
   report: string;
   sources: Source[];
   query: {
+    context: string;
     goal: string;
     competitors: string;
     metrics: string;
+    constraints: string;
   };
   searchModels: string[];
   synthesisModel: string;
   prompts: Record<string, string>;
+  rawInputs: Record<string, string>;
   isMocked: boolean;
   onReset: () => void;
 }
@@ -263,6 +266,7 @@ export default function ReportView({
   searchModels,
   synthesisModel,
   prompts,
+  rawInputs,
   isMocked,
   onReset
 }: ReportViewProps) {
@@ -298,6 +302,7 @@ export default function ReportView({
       research_prompts: prompts,
       search_models: searchModels,
       synthesis_model: synthesisModel,
+      raw_inputs: rawInputs,
       final_report: report,
       sources
     });

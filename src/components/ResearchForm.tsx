@@ -2,45 +2,58 @@ import React from 'react';
 import { Target, Users, BarChart3, ArrowRight } from 'lucide-react';
 
 interface ResearchFormProps {
+  context: string;
+  setContext: (val: string) => void;
   goal: string;
   setGoal: (val: string) => void;
   competitors: string;
   setCompetitors: (val: string) => void;
   metrics: string;
   setMetrics: (val: string) => void;
+  constraints: string;
+  setConstraints: (val: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
 }
 
 export default function ResearchForm({
+  context,
+  setContext,
   goal,
   setGoal,
   competitors,
   setCompetitors,
   metrics,
   setMetrics,
+  constraints,
+  setConstraints,
   onSubmit,
   isLoading
 }: ResearchFormProps) {
 
-  // Các gợi ý nhanh để giúp Strategy Manager điền nhanh dữ liệu
   const applyQuickTemplate = (templateType: 'j&t' | 'ninjavan' | 'tiktok') => {
     if (templateType === 'j&t') {
+      setContext('Trình bày báo cáo cho CEO trong quý tới về mảng giao hàng nhanh, đặc biệt là nhóm hàng thương mại điện tử.');
       setGoal('Phân tích chiến lược định giá cước và tối ưu chặng cuối để cạnh tranh thị phần hàng nhẹ thương mại điện tử');
       setCompetitors('J&T Express, SPX Express (Shopee Express)');
       setMetrics('Bảng giá cước chi tiết các khu vực, mức chiết khấu cho khách hàng lớn (KAs), chính sách miễn cước chuyển hoàn, thuật toán tối ưu tuyến shipper chặng cuối.');
+      setConstraints('Chỉ sử dụng số liệu từ năm 2024 trở đi. Phải đưa ra bảng so sánh giá.');
     } else if (templateType === 'ninjavan') {
+      setContext('Dự án nâng cấp hệ thống Fulfillment cho các khách hàng B2B lớn trong năm sau.');
       setGoal('Đánh giá mô hình quản lý kho thông minh và dịch vụ hoàn tất đơn hàng (Fulfillment) cho các nhà bán hàng đa kênh');
       setCompetitors('Ninja Van, Viettel Post');
       setMetrics('Diện tích phân bổ kho bãi, chi phí lưu kho, công nghệ tự động hóa chia chọn (AGV/băng tải chéo), các tính năng tích hợp API quản lý tồn kho.');
+      setConstraints('Phải phân tích cấu trúc chi phí kho bãi nội thành so với vùng ven.');
     } else if (templateType === 'tiktok') {
+      setContext('Nghiên cứu khả thi mở rộng thị trường chuyển phát xuyên biên giới nhập hàng từ Trung Quốc.');
       setGoal('Nghiên cứu xu hướng vận chuyển e-commerce xuyên biên giới và tác động của các nền tảng social commerce mới');
       setCompetitors('Best Express, J&T Global, Cainiao (Alibaba)');
       setMetrics('Thời gian trung chuyển từ kho Trung Quốc về Việt Nam, mức thuế và thủ tục hải quan thông quan, cước vận chuyển chặng quốc tế, mô hình liên kết hãng bay và bưu cục nội địa.');
+      setConstraints('Ưu tiên thu thập dữ liệu bằng tiếng Trung. Báo cáo không được quá 5 trang.');
     }
   };
 
-  const isFormValid = goal.trim() !== '' && competitors.trim() !== '' && metrics.trim() !== '';
+  const isFormValid = goal.trim() !== '' && competitors.trim() !== '' && metrics.trim() !== '' && context.trim() !== '';
 
   return (
     <form onSubmit={onSubmit} className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-8 animate-fade">
@@ -79,11 +92,27 @@ export default function ResearchForm({
       </div>
 
       <div className="space-y-5">
-        {/* Ô 1: Chủ đề / Mục tiêu */}
+        {/* Ô 1: Bối cảnh */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-[#F58220]" />
-            1. Chủ đề / Mục tiêu cốt lõi của nghiên cứu này là gì?
+            1. Bối cảnh nghiên cứu (Context/Background)
+          </label>
+          <textarea
+            required
+            rows={2}
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            placeholder="Ví dụ: Cần chuẩn bị báo cáo cho Ban Giám Đốc vào tuần tới về xu hướng giao hàng thương mại điện tử..."
+            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+          />
+        </div>
+
+        {/* Ô 2: Chủ đề / Mục tiêu */}
+        <div className="space-y-1.5">
+          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-[#F58220]" />
+            2. Chủ đề / Mục tiêu cốt lõi của nghiên cứu này là gì?
           </label>
           <textarea
             required
@@ -95,11 +124,11 @@ export default function ResearchForm({
           />
         </div>
 
-        {/* Ô 2: Đối thủ cạnh tranh */}
+        {/* Ô 3: Đối thủ cạnh tranh */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <Users className="w-4 h-4 text-[#F58220]" />
-            2. Các đối thủ cạnh tranh hoặc doanh nghiệp mục tiêu cần phân tích?
+            3. Các đối thủ cạnh tranh hoặc doanh nghiệp mục tiêu cần phân tích?
           </label>
           <input
             required
@@ -111,11 +140,11 @@ export default function ResearchForm({
           />
         </div>
 
-        {/* Ô 3: Chỉ số quan tâm */}
+        {/* Ô 4: Chỉ số quan tâm */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <BarChart3 className="w-4 h-4 text-[#F58220]" />
-            3. Các chỉ số hoặc khía cạnh bạn đặc biệt quan tâm (Giá cước, mạng lưới, kho bãi...)?
+            4. Các chỉ số hoặc khía cạnh bạn đặc biệt quan tâm (Giá cước, mạng lưới, kho bãi...)?
           </label>
           <textarea
             required
@@ -123,6 +152,21 @@ export default function ResearchForm({
             value={metrics}
             onChange={(e) => setMetrics(e.target.value)}
             placeholder="Ví dụ: Chính sách chiết khấu KAs, tỷ lệ hoàn trả hàng (Return rate), diện tích và mức độ tự động hóa kho bãi..."
+            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+          />
+        </div>
+
+        {/* Ô 5: Ràng buộc (Tùy chọn) */}
+        <div className="space-y-1.5">
+          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-gray-400" />
+            5. Các ràng buộc (Constraints) - Tùy chọn
+          </label>
+          <textarea
+            rows={2}
+            value={constraints}
+            onChange={(e) => setConstraints(e.target.value)}
+            placeholder="Ví dụ: Chỉ lấy số liệu báo cáo tài chính từ năm 2024, không phân tích mảng giao hàng quốc tế..."
             className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
           />
         </div>

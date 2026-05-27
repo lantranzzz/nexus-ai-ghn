@@ -3,13 +3,15 @@ import { callAIProvider } from '@/lib/ai';
 
 interface ResearchRequest {
   query: {
+    context: string;
     goal: string;
     competitors: string;
     metrics: string;
+    constraints: string;
   };
   synthesisModel: string;
   searchModels: string[];
-  approvedPrompts: Record<string, string>;
+  rawInputs: Record<string, string>;
   apiKeys: Record<string, string>;
   isDeepResearch?: boolean;
 }
@@ -177,9 +179,9 @@ Dựa trên các phân tích chuyên sâu ở trên, chúng tôi đề xuất 3 
 export async function POST(req: Request) {
   try {
     const body: ResearchRequest = await req.json();
-    const { query, synthesisModel, searchModels, approvedPrompts, apiKeys, isDeepResearch } = body;
+    const { query, synthesisModel, searchModels, rawInputs, apiKeys, isDeepResearch } = body;
 
-    if (!query || !synthesisModel || !searchModels || !approvedPrompts) {
+    if (!query || !synthesisModel || !searchModels || !rawInputs) {
       return NextResponse.json({ error: 'Thiếu thông tin yêu cầu nghiên cứu.' }, { status: 400 });
     }
 
@@ -199,85 +201,18 @@ export async function POST(req: Request) {
       });
     }
 
-    // 1. CHẠY API TÌM TIN SONG SONG (PARALLEL EXECUTION)
-    console.log('Bắt đầu gọi API tìm tin song song...');
-    const searchPromises = searchModels.map(async (model) => {
-      const prompt = approvedPrompts[model];
-      if (!prompt) return { model, content: 'Không có prompt được duyệt cho model này.', error: 'Empty prompt' };
-
-      // Xác định provider & key
-      let provider = '';
-      let apiKeyName = '';
-      let modelKey = '';
-
-      if (model.includes('OpenAI') || model.includes('gpt')) {
-        provider = 'openai';
-        apiKeyName = 'openai';
-        modelKey = model.includes('mini') ? 'gpt-4o-mini' : 'gpt-4o';
-        if (isDeepResearch) modelKey = 'o3-mini'; // Bật lý luận
-      } else if (model.includes('Anthropic') || model.includes('claude')) {
-        provider = 'anthropic';
-        apiKeyName = 'anthropic';
-        modelKey = 'claude-3-5-haiku-20241022';
-      } else if (model.includes('Google') || model.includes('gemini')) {
-        provider = 'google';
-        apiKeyName = 'google';
-        modelKey = 'gemini-1.5-flash';
-        if (isDeepResearch) modelKey = 'gemini-2.0-pro-exp-02-05'; // Bật lý luận
-      } else if (model.includes('Perplexity')) {
-        provider = 'perplexity';
-        apiKeyName = 'perplexity';
-        modelKey = 'llama-3.1-sonar-large-online';
-        if (isDeepResearch) modelKey = 'sonar-reasoning'; // Bật lý luận
-      } else if (model.includes('DeepSeek')) {
-        provider = 'deepseek';
-        apiKeyName = 'deepseek';
-        modelKey = 'deepseek-chat';
-      } else if (model.includes('Moonshot') || model.includes('Kimi')) {
-        provider = 'moonshot';
-        apiKeyName = 'moonshot';
-        modelKey = 'moonshot-v1-8k';
-      }
-
-      const key = apiKeys[apiKeyName];
-      if (!key) {
-        // Fallback sang mock lẻ cho model này nếu thiếu key nhưng có key khác chạy thật
-        console.log(`Thiếu key cho ${model}, dùng kết quả nghiên cứu giả lập.`);
-        return {
-          model,
-          content: getMockSearchResult(model, query),
-          isMocked: true
-        };
-      }
-
-      try {
-        const response = await callAIProvider(provider, modelKey, key, prompt);
-        if (response.error) {
-          throw new Error(response.error);
-        }
-        return {
-          model,
-          content: response.content,
-          isMocked: false
-        };
-      } catch (err: any) {
-        console.error(`Lỗi thực thi API cho ${model}:`, err);
-        return {
-          model,
-          content: `Lỗi kết nối API: ${err.message}. Tự động fallback dữ liệu dự phòng:\n\n${getMockSearchResult(model, query)}`,
-          isMocked: true,
-          error: err.message
-        };
-      }
+    // LẤY DỮ LIỆU THÔ DO NGƯỜI DÙNG NHẬP (MANUAL INPUTS)
+    console.log('Tiếp nhận kết quả thô từ người dùng...');
+    
+    // Ghép nối nội dung kết quả thô
+    let searchResultsFeed = '';
+    searchModels.forEach((model, index) => {
+      const content = rawInputs[model] || 'Người dùng không nhập dữ liệu cho bot này.';
+      
+      searchResultsFeed += `### DỮ LIỆU THU THẬP TỪ CHATBOT: ${model}\n`;
+      searchResultsFeed += `${content}\n\n`;
+      searchResultsFeed += `---\n\n`;
     });
-
-    const searchResults = await Promise.all(searchPromises);
-
-    // 2. BIÊN SOẠN & TỔNG HỢP VỚI SYNTHESIS MODEL
-    console.log('Gom dữ liệu thô gửi sang Synthesis Model để tổng hợp...');
-    const searchResultsFeed = searchResults.map(r => {
-      return `### DỮ LIỆU THU THẬP TỪ MODEL: ${r.model} ${r.isMocked ? '(Dữ liệu mô phỏng)' : ''}\n${r.content}\n`;
-    }).join('\n---\n\n');
 
     // Xác định Synthesis Model Provider
     let synthProvider = '';
@@ -326,20 +261,22 @@ Bắt buộc trả về cấu trúc JSON thuần túy (không bọc trong thẻ 
   ]
 }`;
 
-    const userPrompt = `Đầu vào lập kế hoạch nghiên cứu chiến lược:
+const userPrompt = `Đầu vào lập kế hoạch nghiên cứu chiến lược:
+- Bối cảnh (Context): "${query.context}"
 - Chủ đề/Mục tiêu: "${query.goal}"
 - Đối thủ cạnh tranh: "${query.competitors}"
 - Khía cạnh quan tâm: "${query.metrics}"
+- Ràng buộc: "${query.constraints || 'Không có'}"
 
-Dưới đây là TOÀN BỘ kết quả thô thu thập được từ các mô hình tìm kiếm song song:
+Dưới đây là TOÀN BỘ kết quả thô thu thập được từ các chatbot do người dùng dán vào (Lưu ý: Có thể chứa nhiều URL được nhúng trong text):
 ${searchResultsFeed}
 
 Yêu cầu biên soạn từ Strategy Manager:
 1. Độc giả là Ban Giám đốc GHN, viết theo phong cách McKinsey/Chuyên gia chiến lược: Sạch sẽ, phân tích số liệu thực tế, bảng biểu, lập luận logic chặt chẽ.
-2. Hãy DỊCH TOÀN BỘ các thuật ngữ kỹ thuật, logistics tiếng Trung (từ Kimi) và tiếng Anh (từ Perplexity) sang thuật ngữ Tiếng Việt chuẩn chỉnh của ngành Logistics Việt Nam.
+2. Hãy DỊCH TOÀN BỘ các thuật ngữ kỹ thuật, logistics tiếng Trung và tiếng Anh sang thuật ngữ Tiếng Việt chuẩn chỉnh của ngành Logistics Việt Nam.
 3. Thực hiện đối chiếu tìm các điểm mâu thuẫn (Fact-check) giữa các nguồn dữ liệu thô (Ví dụ: số liệu chênh lệch, các tuyên bố truyền thông trái ngược) và chỉ ra trong mục riêng.
-4. Đưa ra 3-5 khuyến nghị hành động cụ thể, thực tế và có sức nặng chiến lược cho GHN (ví dụ: chuyển dịch cơ cấu chi phí, đầu tư hạ tầng, điều chỉnh SLA dịch vụ...).
-5. BẮT BUỘC TRÍCH XUẤT TẤT CẢ CÁC ĐƯỜNG LINK (URLs) TỪ DỮ LIỆU THÔ ĐẦU VÀO. Bạn phải trích xuất các link này và lưu vào mảng "sources" trong JSON trả về. Tuyệt đối không được để mảng "sources" rỗng nếu trong dữ liệu thô có bất kỳ đường link nào.`;
+4. Đưa ra 3-5 khuyến nghị hành động cụ thể, thực tế và có sức nặng chiến lược cho GHN.
+5. QUAN TRỌNG VỀ SOURCE LINK: Bạn phải bóc tách TẤT CẢ các URL có trong dữ liệu thô (ví dụ: các link nằm trong [Source](url) hay link độc lập) và TỔNG HỢP chúng vào mảng "sources" trong JSON trả về. Đồng thời, trong nội dung báo cáo (report), hãy chèn các số tham chiếu kiểu [1], [2] tương ứng với các URL trong mảng "sources". Phân tách rõ ràng kết quả nào có source link, kết quả nào không. Tuyệt đối KHÔNG ĐƯỢC BỊA ĐẶT URL, chỉ dùng các URL xuất hiện trong dữ liệu thô.`;
 
     try {
       const response = await callAIProvider(synthProvider, synthModelKey, synthKey, userPrompt, systemPrompt);

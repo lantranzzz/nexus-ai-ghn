@@ -4,9 +4,11 @@ import { callAIProvider } from '@/lib/ai';
 // Định nghĩa kiểu dữ liệu request body
 interface PlanRequest {
   query: {
+    context: string;
     goal: string;
     competitors: string;
     metrics: string;
+    constraints: string;
   };
   synthesisModel: string;
   searchModels: string[];
@@ -130,19 +132,21 @@ Bắt buộc phản hồi dưới dạng JSON thuần túy (không bọc trong t
 }`;
 
     const userPrompt = `Dữ liệu nghiên cứu của Strategy Manager:
-- Chủ đề/Mục tiêu: "${query.goal}"
+- Bối cảnh (Context): "${query.context}"
+- Chủ đề/Mục tiêu (Goal): "${query.goal}"
 - Đối thủ cần phân tích: "${query.competitors}"
 - Khía cạnh cần tập trung: "${query.metrics}"
+- Các ràng buộc (Constraints): "${query.constraints || 'Không có'}"
 
-Danh sách các Search Models được chọn để gửi prompt:
+Danh sách các Search Models (Chatbot Tools) được chọn để gửi prompt:
 ${searchModels.map(m => `- ${m}`).join('\n')}
 
-Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Search Model. 
+Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Chatbot Tool. BẠN PHẢI tối ưu hóa để người dùng Copy-Paste những prompt này vào ChatGPT/Perplexity/Kimi.
 Lưu ý đặc biệt:
-- YÊU CẦU BẮT BUỘC CHUNG: Trong mọi đoạn prompt được tạo ra cho bất kỳ model nào, BẠN PHẢI THÊM MỘT CÂU LỆNH YÊU CẦU MODEL ĐÓ CUNG CẤP RÕ RÀNG DANH SÁCH CÁC ĐƯỜNG LINK WEB (URLs) NGUỒN THAM KHẢO VÀO CUỐI BÀI VIẾT. Nếu model không thể lướt web, hãy yêu cầu nó cung cấp các URL thật mà nó biết dựa trên kiến thức đào tạo.
-- Nếu danh sách có "Moonshot AI" hoặc "Kimi": Viết prompt bằng Tiếng Trung (hoặc song ngữ Trung-Việt) nhắm vào việc khai thác thông tin kho bãi, logistics, hoặc tối ưu chuỗi cung ứng từ các nguồn Trung Quốc vì Kimi rất mạnh về tiếng Trung.
-- Nếu có "Perplexity": Viết prompt bằng Tiếng Anh học thuật chất lượng cao kèm các yêu cầu trích dẫn số liệu thị trường mới nhất của 2025/2026 và link nguồn.
-- Nếu có "DeepSeek": Viết prompt yêu cầu lập luận chuyên sâu về tối ưu chặng cuối, phân tích chi phí hoặc mô hình chia chọn.
+- YÊU CẦU BẮT BUỘC CHUNG: BẠN PHẢI thêm lệnh này vào mọi prompt: "BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong văn bản theo định dạng [Source](URL) tại bất kỳ chỗ nào bạn đưa ra số liệu hoặc thông tin. KHÔNG ĐƯỢC CHỈ ĐỂ LINK Ở CUỐI BÀI. Tôi cần copy paste kết quả của bạn nên link phải nằm ngay trong text."
+- Nếu có "Moonshot AI" hoặc "Kimi": Viết prompt bằng Tiếng Trung nhắm vào việc khai thác thông tin kho bãi, logistics từ nguồn Trung Quốc.
+- Nếu có "Perplexity": Viết prompt bằng Tiếng Anh học thuật chất lượng cao kèm các yêu cầu trích dẫn số liệu thị trường mới nhất.
+- Nếu có "DeepSeek": Viết prompt yêu cầu lập luận chuyên sâu về tối ưu chặng cuối hoặc chi phí.
 - Các model khác: Viết prompt bằng Tiếng Việt tập trung thu thập dữ liệu cấu trúc dịch vụ và thế mạnh cạnh tranh.`;
 
     try {

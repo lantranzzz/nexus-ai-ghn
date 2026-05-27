@@ -7,6 +7,7 @@ import SettingsSidebar, { ApiKeys } from '@/components/SettingsSidebar';
 import ModelSelection from '@/components/ModelSelection';
 import ResearchForm from '@/components/ResearchForm';
 import PromptReview from '@/components/PromptReview';
+import ManualInputForm from '@/components/ManualInputForm';
 import ReportView from '@/components/ReportView';
 import { getResearches, ResearchData, isSupabaseConfigured } from '@/lib/supabase';
 import { 
@@ -19,9 +20,11 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   // Dữ liệu Form
+  const [context, setContext] = useState<string>('');
   const [goal, setGoal] = useState<string>('');
   const [competitors, setCompetitors] = useState<string>('');
   const [metrics, setMetrics] = useState<string>('');
+  const [constraints, setConstraints] = useState<string>('');
 
   // Lựa chọn Model mặc định
   const [selectedSearchModels, setSelectedSearchModels] = useState<string[]>([
@@ -35,12 +38,12 @@ export default function Home() {
   const [isDeepResearch, setIsDeepResearch] = useState<boolean>(false);
 
   // Tiến trình Orchestration
-  // 'form' | 'planning' | 'prompts' | 'researching' | 'result'
-  const [step, setStep] = useState<'form' | 'planning' | 'prompts' | 'researching' | 'result'>('form');
+  // 'form' | 'planning' | 'prompts' | 'manual_input' | 'researching' | 'result'
+  const [step, setStep] = useState<'form' | 'planning' | 'prompts' | 'manual_input' | 'researching' | 'result'>('form');
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   
-  // Dữ liệu tạo bởi AI
   const [prompts, setPrompts] = useState<Record<string, string>>({});
+  const [rawInputs, setRawInputs] = useState<Record<string, string>>({});
   const [planningSummary, setPlanningSummary] = useState<string>('');
   const [report, setReport] = useState<string>('');
   const [sources, setSources] = useState<{ title: string; url: string }[]>([]);
@@ -101,7 +104,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: { goal, competitors, metrics },
+          query: { context, goal, competitors, metrics, constraints },
           synthesisModel: selectedSynthesisModel,
           searchModels: selectedSearchModels,
           apiKeys,
@@ -128,7 +131,7 @@ export default function Home() {
   // GIAI ĐOẠN 2: THỰC THI API SONG SONG & BIÊN SOẠN TỔNG HỢP
   const handleExecuteResearch = async () => {
     setStep('researching');
-    setLoadingMessage('Bắt đầu gọi API song song các model Tìm Tin (Search)...');
+    setLoadingMessage('Bắt đầu chuyển giao dữ liệu thô cho Model Tổng Biên Tập...');
 
     const apiKeys = getStoredApiKeys();
 
@@ -159,10 +162,10 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: { goal, competitors, metrics },
+          query: { context, goal, competitors, metrics, constraints },
           synthesisModel: selectedSynthesisModel,
           searchModels: selectedSearchModels,
-          approvedPrompts: prompts,
+          rawInputs,
           apiKeys,
           isDeepResearch
         }),
@@ -291,12 +294,16 @@ export default function Home() {
 
             {/* Form Nghiên cứu */}
             <ResearchForm
+              context={context}
+              setContext={setContext}
               goal={goal}
               setGoal={setGoal}
               competitors={competitors}
               setCompetitors={setCompetitors}
               metrics={metrics}
               setMetrics={setMetrics}
+              constraints={constraints}
+              setConstraints={setConstraints}
               onSubmit={handlePlanResearch}
               isLoading={false}
             />
@@ -370,9 +377,27 @@ export default function Home() {
             setPrompts={setPrompts}
             planningSummary={planningSummary}
             onBack={() => setStep('form')}
-            onConfirm={handleExecuteResearch}
+            onConfirm={() => {
+              // Khởi tạo state rỗng cho rawInputs dựa trên các model đã chọn
+              const initialRawInputs: Record<string, string> = {};
+              selectedSearchModels.forEach(m => initialRawInputs[m] = '');
+              setRawInputs(initialRawInputs);
+              setStep('manual_input');
+            }}
             isLoading={false}
             isMocked={isReportMocked}
+          />
+        )}
+
+        {/* STEP 4: NHẬP DỮ LIỆU THÔ (MANUAL INPUT) */}
+        {step === 'manual_input' && (
+          <ManualInputForm
+            models={selectedSearchModels}
+            rawInputs={rawInputs}
+            setRawInputs={setRawInputs}
+            onBack={() => setStep('prompts')}
+            onSubmit={handleExecuteResearch}
+            isLoading={false}
           />
         )}
 
@@ -381,10 +406,11 @@ export default function Home() {
           <ReportView
             report={report}
             sources={sources}
-            query={{ goal, competitors, metrics }}
+            query={{ context, goal, competitors, metrics, constraints }}
             searchModels={selectedSearchModels}
             synthesisModel={selectedSynthesisModel}
             prompts={prompts}
+            rawInputs={rawInputs}
             isMocked={isReportMocked}
             onReset={handleReset}
           />
