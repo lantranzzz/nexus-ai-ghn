@@ -159,12 +159,10 @@ Lưu ý đặc biệt:
 
     } catch (apiError: any) {
       console.error('Lỗi khi gọi API Tổng Biên Tập:', apiError);
-      // Fallback sang Mock
-      const mockResult = generateMockPlan(query.goal, query.competitors, query.metrics, searchModels, synthesisModel);
-      return NextResponse.json({
-        ...mockResult,
-        warning: `Đã tự động chuyển sang chế độ Thử nghiệm do lỗi API: ${apiError.message}`
-      });
+      return NextResponse.json(
+        { error: `Lỗi kết nối API Tổng Biên Tập: ${apiError.message}. Vui lòng kiểm tra lại API Key.` }, 
+        { status: 500 }
+      );
     }
 
   } catch (err: any) {

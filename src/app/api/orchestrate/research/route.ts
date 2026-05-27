@@ -312,11 +312,10 @@ Yêu cầu biên soạn từ Strategy Manager:
 
     } catch (synthError: any) {
       console.error('Lỗi trong quá trình Tổng hợp báo cáo:', synthError);
-      const mockResult = generateMockSynthesisReport(query, searchModels, synthesisModel);
-      return NextResponse.json({
-        ...mockResult,
-        warning: `Lỗi trong quá trình Tổng hợp của AI: ${synthError.message}. Đã tự động sử dụng trình tạo chiến lược dự phòng.`
-      });
+      return NextResponse.json(
+        { error: `Lỗi kết nối AI Tổng Biên Tập: ${synthError.message}. Vui lòng kiểm tra lại API Key hoặc đổi Model.` }, 
+        { status: 500 }
+      );
     }
 
   } catch (err: any) {
