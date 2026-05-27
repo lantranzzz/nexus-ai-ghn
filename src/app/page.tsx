@@ -91,10 +91,24 @@ export default function Home() {
   // GIAI ĐOẠN 1: LẬP KẾ HOẠCH & SINH PROMPTS
   const handlePlanResearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const apiKeys = getStoredApiKeys();
+    
+    // Kiểm tra xem Model Tổng Biên Tập có API Key chưa
+    let requiredKeyName = '';
+    const synthesisLower = selectedSynthesisModel.toLowerCase();
+    if (synthesisLower.includes('claude')) requiredKeyName = 'anthropic';
+    else if (synthesisLower.includes('gpt') || synthesisLower.includes('o1')) requiredKeyName = 'openai';
+    else if (synthesisLower.includes('gemini')) requiredKeyName = 'google';
+    
+    if (requiredKeyName && !apiKeys[requiredKeyName as keyof typeof apiKeys]) {
+      alert(`Bạn chưa cấu hình API Key cho ${requiredKeyName.toUpperCase()} - model đang được chọn làm Tổng Biên Tập. Vui lòng thêm Key trong phần Cài đặt trước khi chạy.`);
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setStep('planning');
     setLoadingMessage('Đang kết nối Model Tổng Biên Tập để lập kế hoạch & tối ưu prompt...');
-
-    const apiKeys = getStoredApiKeys();
 
     try {
       const response = await fetch('/api/orchestrate/plan', {
@@ -128,10 +142,23 @@ export default function Home() {
 
   // GIAI ĐOẠN 2: THỰC THI API SONG SONG & BIÊN SOẠN TỔNG HỢP
   const handleExecuteResearch = async () => {
+    const apiKeys = getStoredApiKeys();
+    
+    // Kiểm tra xem Model Tổng Biên Tập có API Key chưa
+    let requiredKeyName = '';
+    const synthesisLower = selectedSynthesisModel.toLowerCase();
+    if (synthesisLower.includes('claude')) requiredKeyName = 'anthropic';
+    else if (synthesisLower.includes('gpt') || synthesisLower.includes('o1')) requiredKeyName = 'openai';
+    else if (synthesisLower.includes('gemini')) requiredKeyName = 'google';
+    
+    if (requiredKeyName && !apiKeys[requiredKeyName as keyof typeof apiKeys]) {
+      alert(`Bạn chưa cấu hình API Key cho ${requiredKeyName.toUpperCase()} - model đang được chọn làm Tổng Biên Tập. Vui lòng thêm Key trong phần Cài đặt trước khi chạy.`);
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setStep('researching');
     setLoadingMessage('Bắt đầu chuyển giao dữ liệu thô cho Model Tổng Biên Tập...');
-
-    const apiKeys = getStoredApiKeys();
 
     // Giả lập cập nhật trạng thái hiển thị cho mượt mà
     const progressMessages = [
