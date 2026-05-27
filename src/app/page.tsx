@@ -33,7 +33,7 @@ export default function Home() {
     'Moonshot AI (kimi-api)'
   ]);
   const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
-    'OpenAI (gpt-5.5)'
+    'OpenAI (gpt-5.5-pro)'
   );
 
   // Tiến trình Orchestration
