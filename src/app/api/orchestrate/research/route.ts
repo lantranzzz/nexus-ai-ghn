@@ -335,7 +335,7 @@ Yêu cầu biên soạn từ Strategy Manager:
 2. Hãy DỊCH TOÀN BỘ các thuật ngữ kỹ thuật, logistics tiếng Trung (từ Kimi) và tiếng Anh (từ Perplexity) sang thuật ngữ Tiếng Việt chuẩn chỉnh của ngành Logistics Việt Nam.
 3. Thực hiện đối chiếu tìm các điểm mâu thuẫn (Fact-check) giữa các nguồn dữ liệu thô (Ví dụ: số liệu chênh lệch, các tuyên bố truyền thông trái ngược) và chỉ ra trong mục riêng.
 4. Đưa ra 3-5 khuyến nghị hành động cụ thể, thực tế và có sức nặng chiến lược cho GHN (ví dụ: chuyển dịch cơ cấu chi phí, đầu tư hạ tầng, điều chỉnh SLA dịch vụ...).
-5. Trích xuất tất cả các đường link nguồn (URL) tìm thấy trong kết quả thô thành một danh sách nguồn tham khảo rõ ràng ở cuối JSON để hiển thị cho người dùng click vào.`;
+5. BẮT BUỘC TRÍCH XUẤT TẤT CẢ CÁC ĐƯỜNG LINK (URLs) TỪ DỮ LIỆU THÔ ĐẦU VÀO. Bạn phải trích xuất các link này và lưu vào mảng "sources" trong JSON trả về. Tuyệt đối không được để mảng "sources" rỗng nếu trong dữ liệu thô có bất kỳ đường link nào.`;
 
     try {
       const response = await callAIProvider(synthProvider, synthModelKey, synthKey, userPrompt, systemPrompt);

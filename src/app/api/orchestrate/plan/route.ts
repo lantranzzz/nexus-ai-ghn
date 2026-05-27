@@ -139,6 +139,7 @@ ${searchModels.map(m => `- ${m}`).join('\n')}
 
 Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Search Model. 
 Lưu ý đặc biệt:
+- YÊU CẦU BẮT BUỘC CHUNG: Trong mọi đoạn prompt được tạo ra cho bất kỳ model nào, BẠN PHẢI THÊM MỘT CÂU LỆNH YÊU CẦU MODEL ĐÓ CUNG CẤP RÕ RÀNG DANH SÁCH CÁC ĐƯỜNG LINK WEB (URLs) NGUỒN THAM KHẢO VÀO CUỐI BÀI VIẾT. Nếu model không thể lướt web, hãy yêu cầu nó cung cấp các URL thật mà nó biết dựa trên kiến thức đào tạo.
 - Nếu danh sách có "Moonshot AI" hoặc "Kimi": Viết prompt bằng Tiếng Trung (hoặc song ngữ Trung-Việt) nhắm vào việc khai thác thông tin kho bãi, logistics, hoặc tối ưu chuỗi cung ứng từ các nguồn Trung Quốc vì Kimi rất mạnh về tiếng Trung.
 - Nếu có "Perplexity": Viết prompt bằng Tiếng Anh học thuật chất lượng cao kèm các yêu cầu trích dẫn số liệu thị trường mới nhất của 2025/2026 và link nguồn.
 - Nếu có "DeepSeek": Viết prompt yêu cầu lập luận chuyên sâu về tối ưu chặng cuối, phân tích chi phí hoặc mô hình chia chọn.
