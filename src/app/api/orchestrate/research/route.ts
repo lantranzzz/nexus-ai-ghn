@@ -11,6 +11,7 @@ interface ResearchRequest {
   searchModels: string[];
   approvedPrompts: Record<string, string>;
   apiKeys: Record<string, string>;
+  isDeepResearch?: boolean;
 }
 
 // 1. SINH KẾT QUẢ TÌM KIẾM MẪU (MOCK SEARCH RESULTS)
@@ -176,7 +177,7 @@ Dựa trên các phân tích chuyên sâu ở trên, chúng tôi đề xuất 3 
 export async function POST(req: Request) {
   try {
     const body: ResearchRequest = await req.json();
-    const { query, synthesisModel, searchModels, approvedPrompts, apiKeys } = body;
+    const { query, synthesisModel, searchModels, approvedPrompts, apiKeys, isDeepResearch } = body;
 
     if (!query || !synthesisModel || !searchModels || !approvedPrompts) {
       return NextResponse.json({ error: 'Thiếu thông tin yêu cầu nghiên cứu.' }, { status: 400 });
@@ -213,6 +214,7 @@ export async function POST(req: Request) {
         provider = 'openai';
         apiKeyName = 'openai';
         modelKey = model.includes('mini') ? 'gpt-4o-mini' : 'gpt-4o';
+        if (isDeepResearch) modelKey = 'o3-mini'; // Bật lý luận
       } else if (model.includes('Anthropic') || model.includes('claude')) {
         provider = 'anthropic';
         apiKeyName = 'anthropic';
@@ -221,10 +223,12 @@ export async function POST(req: Request) {
         provider = 'google';
         apiKeyName = 'google';
         modelKey = 'gemini-1.5-flash';
+        if (isDeepResearch) modelKey = 'gemini-2.0-pro-exp-02-05'; // Bật lý luận
       } else if (model.includes('Perplexity')) {
         provider = 'perplexity';
         apiKeyName = 'perplexity';
         modelKey = 'llama-3.1-sonar-large-online';
+        if (isDeepResearch) modelKey = 'sonar-reasoning'; // Bật lý luận
       } else if (model.includes('DeepSeek')) {
         provider = 'deepseek';
         apiKeyName = 'deepseek';

@@ -6,6 +6,8 @@ interface ModelSelectionProps {
   setSelectedSearchModels: (models: string[]) => void;
   selectedSynthesisModel: string;
   setSelectedSynthesisModel: (model: string) => void;
+  isDeepResearch: boolean;
+  setIsDeepResearch: (val: boolean) => void;
 }
 
 export const SEARCH_MODELS = [
@@ -30,7 +32,9 @@ export default function ModelSelection({
   selectedSearchModels,
   setSelectedSearchModels,
   selectedSynthesisModel,
-  setSelectedSynthesisModel
+  setSelectedSynthesisModel,
+  isDeepResearch,
+  setIsDeepResearch
 }: ModelSelectionProps) {
 
   const toggleSearchModel = (modelName: string) => {
@@ -90,6 +94,29 @@ export default function ModelSelection({
               </div>
             );
           })}
+        </div>
+
+        {/* Deep Research Toggle */}
+        <div className="mt-6 p-4 rounded-xl border-2 border-orange-100 bg-orange-50/30 flex items-start gap-3 cursor-pointer" onClick={() => setIsDeepResearch(!isDeepResearch)}>
+          <div className="mt-0.5 shrink-0">
+            {isDeepResearch ? (
+              <div className="w-5 h-5 bg-[#F58220] rounded flex items-center justify-center text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3.5 h-3.5">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            ) : (
+              <div className="w-5 h-5 border-2 border-gray-300 rounded bg-white" />
+            )}
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+              🚀 Kích hoạt Chế độ Deep Research
+            </h4>
+            <p className="text-[11px] text-gray-600 mt-1">
+              Hệ thống sẽ ép các bot tìm kiếm (Perplexity, OpenAI) sử dụng mô hình "Reasoning" (như sonar-reasoning, o3-mini) để tự động suy luận đa bước, duyệt web sâu hơn và bóc tách các báo cáo ẩn. Thời gian chờ có thể lâu hơn.
+            </p>
+          </div>
         </div>
       </div>
 
