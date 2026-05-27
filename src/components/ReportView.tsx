@@ -435,13 +435,13 @@ export default function ReportView({
         </article>
 
         {/* PHẦN DANH SÁCH CÁC NGUỒN TRÍCH DẪN RIÊNG BIỆT Ở CUỐI */}
-        {sources && sources.length > 0 && (
-          <div className="mt-10 pt-8 border-t border-gray-200">
-            <h4 className="text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <ExternalLink className="w-4 h-4 text-[#F58220]" />
-              Chi Tiết Danh Sách Nguồn Trích Dẫn (Sources)
-            </h4>
-            
+        <div className="mt-10 pt-8 border-t border-gray-200">
+          <h4 className="text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <ExternalLink className="w-4 h-4 text-[#F58220]" />
+            Chi Tiết Danh Sách Nguồn Trích Dẫn (Sources)
+          </h4>
+          
+          {sources && sources.length > 0 ? (
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pl-0 list-none">
               {sources.map((src, i) => (
                 <li key={i} className="pl-0">
@@ -465,8 +465,18 @@ export default function ReportView({
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+              <div className="text-xs text-gray-600 leading-relaxed">
+                <p className="font-bold">Không có nguồn trích dẫn cụ thể (No external sources provided)</p>
+                <p className="mt-0.5">
+                  Mô hình AI biên tập đã sử dụng kiến thức nội tại hoặc dữ liệu được cung cấp chưa chứa các đường dẫn web cụ thể. Hệ thống tuân thủ nguyên tắc không bịa đặt nguồn (No Hallucination) nên phần này được để trống.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
     </div>

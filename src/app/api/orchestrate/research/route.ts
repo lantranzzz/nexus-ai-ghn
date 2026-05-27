@@ -364,14 +364,8 @@ Yêu cầu biên soạn từ Strategy Manager:
         });
       }
 
-      // Fallback nếu AI Tổng biên tập bỏ sót link
+      // Khôi phục mảng nguồn thực tế từ AI (nếu có)
       let finalSources = parsedResponse.sources || [];
-      if (finalSources.length === 0) {
-        finalSources = [
-          { title: "Dữ liệu phân tích AI nội bộ", url: "https://hub.ghn.vn" },
-          { title: "Nghiên cứu thị trường Logistics Việt Nam (Tham khảo)", url: "https://moit.gov.vn/bao-cao-sach-trang-logistics" }
-        ];
-      }
 
       return NextResponse.json({
         report: parsedResponse.report || '',
