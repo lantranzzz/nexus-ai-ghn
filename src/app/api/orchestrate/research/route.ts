@@ -222,15 +222,15 @@ export async function POST(req: Request) {
     const synthMatch = synthesisModel.match(/\(([^)]+)\)/);
     const rawSynthModel = synthMatch ? synthMatch[1] : synthesisModel;
 
-    if (synthesisModel.includes('claude')) {
+    if (synthesisModel.toLowerCase().includes('claude')) {
       synthProvider = 'anthropic';
       synthApiKeyName = 'anthropic';
       synthModelKey = rawSynthModel;
-    } else if (synthesisModel.includes('gpt') || synthesisModel.includes('o1')) {
+    } else if (synthesisModel.toLowerCase().includes('openai') || synthesisModel.toLowerCase().includes('gpt')) {
       synthProvider = 'openai';
       synthApiKeyName = 'openai';
       synthModelKey = rawSynthModel;
-    } else if (synthesisModel.includes('gemini')) {
+    } else if (synthesisModel.toLowerCase().includes('gemini')) {
       synthProvider = 'google';
       synthApiKeyName = 'google';
       synthModelKey = rawSynthModel;

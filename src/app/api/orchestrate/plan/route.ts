@@ -72,15 +72,15 @@ export async function POST(req: Request) {
     const modelMatch = synthesisModel.match(/\(([^)]+)\)/);
     const rawModelName = modelMatch ? modelMatch[1] : synthesisModel;
 
-    if (synthesisModel.includes('claude')) {
+    if (synthesisModel.toLowerCase().includes('claude')) {
       provider = 'anthropic';
       apiKeyName = 'anthropic';
       modelName = rawModelName;
-    } else if (synthesisModel.includes('gpt') || synthesisModel.includes('o1')) {
+    } else if (synthesisModel.toLowerCase().includes('openai') || synthesisModel.toLowerCase().includes('gpt')) {
       provider = 'openai';
       apiKeyName = 'openai';
       modelName = rawModelName;
-    } else if (synthesisModel.includes('gemini')) {
+    } else if (synthesisModel.toLowerCase().includes('gemini')) {
       provider = 'google';
       apiKeyName = 'google';
       modelName = rawModelName;

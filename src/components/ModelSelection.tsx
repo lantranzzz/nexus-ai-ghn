@@ -24,7 +24,7 @@ export const SYNTHESIS_MODELS = [
   { id: 'anthropic-claude-4-sonnet', name: 'Anthropic (claude-4-sonnet)', provider: 'Anthropic', label: 'Claude 4 Sonnet - Lựa chọn số 1 về tư duy chiến lược' },
   { id: 'anthropic-claude-4-opus', name: 'Anthropic (claude-4-opus)', provider: 'Anthropic', label: 'Claude 4 Opus - Lập luận học thuật chuyên sâu' },
   { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', label: 'GPT-4o - Tổng hợp dữ liệu đa năng' },
-  { id: 'openai-o3-mini', name: 'OpenAI (o3-mini)', provider: 'OpenAI', label: 'OpenAI o3-mini - Suy nghĩ lập luận siêu tốc' },
+  { id: 'openai-o4-mini', name: 'OpenAI (o4-mini)', provider: 'OpenAI', label: 'OpenAI o4-mini - Suy nghĩ lập luận siêu tốc' },
   { id: 'google-gemini-2.0-pro', name: 'Google (gemini-2.0-pro)', provider: 'Google', label: 'Gemini 2.0 Pro - Phân tích tài liệu toàn diện' }
 ];
 
