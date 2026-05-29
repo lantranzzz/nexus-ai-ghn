@@ -18,7 +18,7 @@ export const SEARCH_MODELS = [
 ];
 
 export const SYNTHESIS_MODELS = [
-  { id: 'openai-gpt-5.5-pro', name: 'OpenAI (gpt-5.5-pro)', provider: 'OpenAI', label: 'GPT-5.5 Pro - Trí tuệ siêu việt chuyên gia' },
+  { id: 'openai-gpt-5.5', name: 'OpenAI (gpt-5.5)', provider: 'OpenAI', label: 'GPT-5.5 - Trí tuệ siêu việt chuyên gia' },
   { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', label: 'GPT-4o - Tổng hợp dữ liệu đa năng' },
   { id: 'openai-o1-mini', name: 'OpenAI (o1-mini)', provider: 'OpenAI', label: 'o1-mini - Suy luận logic tốc độ cao' },
   { id: 'openai-o3-mini', name: 'OpenAI (o3-mini)', provider: 'OpenAI', label: 'o3-mini - Suy luận chuyên sâu' }
