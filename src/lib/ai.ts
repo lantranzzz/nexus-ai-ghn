@@ -20,9 +20,6 @@ export const callOpenAI = async (
   try {
     if (!apiKey) throw new Error('API Key OpenAI trống');
     
-    // Bản thân gpt-5.5-pro hiện tại trên hệ thống OpenAI thực tế (2024) chưa mở endpoint chuẩn, ta map tạm về gpt-4o
-    const actualModel = model === 'gpt-5.5-pro' ? 'gpt-4o' : model;
-
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -30,12 +27,12 @@ export const callOpenAI = async (
         'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: actualModel,
+        model: model,
         messages: [
           ...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []),
           { role: 'user', content: prompt }
         ],
-        ...(actualModel.includes('o1') || actualModel.includes('o3') || actualModel.includes('o4') ? {} : { temperature: 0.3 }),
+        ...(model.includes('o1') || model.includes('o3') || model.includes('o4') ? {} : { temperature: 0.3 }),
       }),
     });
 
