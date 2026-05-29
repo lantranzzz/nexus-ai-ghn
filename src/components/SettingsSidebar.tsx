@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Key, Info, CheckCircle, Database } from 'lucide-react';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { X, Key, Info, CheckCircle, Database, Trash2, LogOut } from 'lucide-react';
+import { isSupabaseConfigured, supabase, syncApiKeysToCloud } from '@/lib/supabase';
 
 interface SettingsSidebarProps {
   isOpen: boolean;
@@ -51,12 +51,43 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
     }));
   };
 
-  const saveKeys = () => {
+  const saveKeys = async () => {
     localStorage.setItem('nexusai_api_keys', JSON.stringify(keys));
+    if (supabaseConnected) {
+      await syncApiKeysToCloud(keys as any);
+    }
     setSavedStatus(true);
     setTimeout(() => {
       setSavedStatus(false);
     }, 2500);
+  };
+
+  const clearKeys = async () => {
+    if (confirm('Bạn có chắc chắn muốn xóa tất cả API Keys không?')) {
+      const emptyKeys = {
+        openai: '',
+        anthropic: '',
+        google: '',
+        perplexity: '',
+        deepseek: '',
+        moonshot: '',
+      };
+      setKeys(emptyKeys);
+      localStorage.removeItem('nexusai_api_keys');
+      if (supabaseConnected) {
+        await syncApiKeysToCloud(emptyKeys as any);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+      if (supabaseConnected && supabase) {
+        await supabase.auth.signOut();
+      }
+      localStorage.removeItem('nexusai_auth');
+      window.location.reload();
+    }
   };
 
   if (!isOpen) return null;
@@ -197,13 +228,30 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col gap-2">
+        <div className="p-4 border-t border-gray-200 bg-gray-50 flex flex-col gap-3">
           <button
             onClick={saveKeys}
             className="w-full py-2.5 px-4 bg-[#F58220] hover:bg-[#E06B16] text-white font-semibold rounded-md shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             Lưu Cấu Hình
           </button>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={clearKeys}
+              className="w-full py-2 px-4 bg-white border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-medium rounded-md shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm"
+            >
+              <Trash2 className="w-4 h-4" />
+              Xóa Keys
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full py-2 px-4 bg-white border border-gray-200 text-gray-600 hover:bg-gray-100 hover:border-gray-300 font-medium rounded-md shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              Đăng xuất
+            </button>
+          </div>
           
           {savedStatus && (
             <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-medium py-1 animate-fade">

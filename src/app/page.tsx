@@ -9,7 +9,8 @@ import ResearchForm from '@/components/ResearchForm';
 import PromptReview from '@/components/PromptReview';
 import ManualInputForm from '@/components/ManualInputForm';
 import ReportView from '@/components/ReportView';
-import { getResearches, ResearchData, isSupabaseConfigured } from '@/lib/supabase';
+import { getResearches, ResearchData, isSupabaseConfigured, supabase, getApiKeysFromCloud } from '@/lib/supabase';
+import Login from '@/components/Login';
 import { 
   Sparkles, Clock, History, FileText, Database, 
   HelpCircle, ChevronRight, AlertTriangle, ShieldCheck 
@@ -53,6 +54,10 @@ export default function Home() {
   const [isLoadingHistory, setIsLoadingHistory] = useState<boolean>(false);
   const [dbStatusText, setDbStatusText] = useState<string>('LocalStorage');
 
+  // Xác thực
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+
   // Khởi chạy: Tải lịch sử & kiểm tra DB
   const loadHistory = async () => {
     setIsLoadingHistory(true);
@@ -65,6 +70,47 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const checkAuth = async () => {
+      if (isSupabaseConfigured() && supabase) {
+        // Kiểm tra session hiện tại
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsAuthenticated(true);
+          // Tải API Keys từ Cloud về
+          const cloudKeys = await getApiKeysFromCloud();
+          if (cloudKeys) {
+            localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+          }
+        } else {
+          setIsAuthenticated(false);
+        }
+        setIsCheckingAuth(false);
+
+        // Lắng nghe thay đổi auth
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (session) {
+            setIsAuthenticated(true);
+            const cloudKeys = await getApiKeysFromCloud();
+            if (cloudKeys) {
+              localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+            }
+          } else {
+            setIsAuthenticated(false);
+          }
+        });
+
+        return () => subscription.unsubscribe();
+      } else {
+        // Kiểm tra trạng thái đăng nhập Local
+        const authStatus = localStorage.getItem('nexusai_auth');
+        if (authStatus === 'true') {
+          setIsAuthenticated(true);
+        }
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
     loadHistory();
   }, []);
 
@@ -243,6 +289,16 @@ export default function Home() {
     setSources([]);
     setStep('form');
   };
+
+  if (isCheckingAuth) {
+    return <div className="h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-[#F58220] border-t-transparent rounded-full animate-spin"></div>
+    </div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">

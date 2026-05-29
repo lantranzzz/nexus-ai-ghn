@@ -96,3 +96,38 @@ export const getResearches = async (): Promise<{ success: boolean; data: Researc
     return { success: false, data: [], isLocalFallback: !isSupabaseConfigured() };
   }
 };
+
+// --- AUTH & USER METADATA SYNC ---
+
+export const syncApiKeysToCloud = async (keys: Record<string, string>): Promise<{ success: boolean; error?: string }> => {
+  if (!isSupabaseConfigured() || !supabase) return { success: false, error: 'Chưa cấu hình Supabase' };
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Chưa đăng nhập' };
+
+    const { error } = await supabase.auth.updateUser({
+      data: { api_keys: keys }
+    });
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err: any) {
+    console.error('Lỗi khi sync API Keys:', err);
+    return { success: false, error: err.message };
+  }
+};
+
+export const getApiKeysFromCloud = async (): Promise<Record<string, string> | null> => {
+  if (!isSupabaseConfigured() || !supabase) return null;
+  
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    return user.user_metadata?.api_keys || null;
+  } catch (err: any) {
+    console.error('Lỗi khi lấy API Keys:', err);
+    return null;
+  }
+};
