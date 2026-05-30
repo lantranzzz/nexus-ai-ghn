@@ -17,6 +17,7 @@ export const supabase = isSupabaseConfigured()
 export interface ResearchData {
   id?: string;
   created_at?: string;
+  user_id?: string;
   query: {
     scope: string;
     persona: string;
@@ -38,6 +39,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
     if (isSupabaseConfigured() && supabase) {
       // Lấy token trực tiếp từ localStorage (tránh supabase.auth.getSession() bị treo)
       let token: string | null = null;
+      let userId: string | null = null;
       try {
         const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
         if (storageKey) {
@@ -45,6 +47,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
           if (raw) {
             const parsed = JSON.parse(raw);
             token = parsed?.access_token || null;
+            userId = parsed?.user?.id || null;
           }
         }
       } catch (e) {
@@ -79,7 +82,8 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
             synthesis_model: data.synthesis_model,
             raw_inputs: data.raw_inputs || null,
             final_report: data.final_report,
-            sources: sanitizedSources
+            sources: sanitizedSources,
+            user_id: userId
           })
         });
 
@@ -105,7 +109,8 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
                 synthesis_model: data.synthesis_model,
                 raw_inputs: data.raw_inputs || null,
                 final_report: data.final_report,
-                sources: sanitizedSources
+                sources: sanitizedSources,
+                user_id: userId
               })
             });
             if (!retryResponse.ok) {
@@ -154,10 +159,18 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
 export const getResearches = async (): Promise<{ success: boolean; data: ResearchData[]; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      const getQuery = supabase
+      // Xác định user đang đăng nhập
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let getQuery = supabase
         .from('researches')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+        
+      if (user?.id) {
+        getQuery = getQuery.eq('user_id', user.id);
+      }
+      
+      getQuery = getQuery.order('created_at', { ascending: false });
 
       const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) => 
         setTimeout(() => reject(new Error('Yêu cầu tải dữ liệu từ Cloud quá hạn (Timeout).')), 25000)
