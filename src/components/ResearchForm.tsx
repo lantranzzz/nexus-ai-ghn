@@ -1,5 +1,5 @@
-import React from 'react';
-import { Target, Users, BarChart3, ArrowRight } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Target, Users, BarChart3, ArrowRight, Paperclip, Loader2 } from 'lucide-react';
 
 interface ResearchFormProps {
   scope: string;
@@ -30,6 +30,36 @@ export default function ResearchForm({
   onSubmit,
   isLoading
 }: ResearchFormProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isReadingFile, setIsReadingFile] = useState(false);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsReadingFile(true);
+    const reader = new FileReader();
+    
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      if (content) {
+        const fileHeader = `\n\n--- Dữ liệu từ file: ${file.name} ---\n`;
+        setKnowledge((knowledge ? knowledge + fileHeader : fileHeader) + content);
+      }
+      setIsReadingFile(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      alert('Không thể đọc file. Vui lòng đảm bảo đây là file văn bản (.txt, .md, .csv)');
+      setIsReadingFile(false);
+    };
+
+    // Try reading as text
+    reader.readAsText(file);
+  };
 
   const applyQuickTemplate = (templateType: 'j&t' | 'ninjavan' | 'tiktok') => {
     if (templateType === 'j&t') {
@@ -157,17 +187,38 @@ export default function ResearchForm({
         </div>
 
         {/* Ô 5: K - KNOWLEDGE */}
-        <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-gray-400" />
-            5. KNOWLEDGE - Kiến thức nền (Ví dụ mẫu, từ khóa tham khảo)
-          </label>
+        <div className="space-y-1.5 relative">
+          <div className="flex items-center justify-between">
+            <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
+              <Target className="w-4 h-4 text-gray-400" />
+              5. KNOWLEDGE - Kiến thức nền (Ví dụ mẫu, từ khóa tham khảo)
+            </label>
+            
+            <div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                accept=".txt,.md,.csv,.json"
+                className="hidden" 
+              />
+              <button 
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isReadingFile}
+                className="flex items-center gap-1.5 text-xs font-semibold text-[#F58220] hover:text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                {isReadingFile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
+                Đính kèm File
+              </button>
+            </div>
+          </div>
           <textarea
-            rows={2}
+            rows={4}
             value={knowledge}
             onChange={(e) => setKnowledge(e.target.value)}
-            placeholder="Ví dụ: Nhớ chú ý tới Mega Hub mới mở của Viettel Post, thuật ngữ WMS 5.0..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+            placeholder="Ví dụ: Nhớ chú ý tới Mega Hub mới mở của Viettel Post, hoặc đính kèm file tài liệu..."
+            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-y text-gray-800"
           />
         </div>
       </div>
