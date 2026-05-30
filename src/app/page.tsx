@@ -137,8 +137,15 @@ export default function Home() {
     };
 
     checkAuth();
-    loadHistory();
+    // KHÔNG gọi loadHistory() ở đây — cần đợi checkAuth xác nhận session xong trước
   }, []);
+
+  // Khi trạng thái đăng nhập thay đổi -> tải lịch sử
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadHistory();
+    }
+  }, [isAuthenticated]);
 
   // Lấy các API Keys từ LocalStorage khi cần gọi API
   const getStoredApiKeys = (): ApiKeys => {
