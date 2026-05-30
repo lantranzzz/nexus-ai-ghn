@@ -30,9 +30,11 @@ export default function Home() {
 
   // Lựa chọn Model mặc định
   const [selectedSearchModels, setSelectedSearchModels] = useState<string[]>([
+    'ChatGPT (OpenAI)',
+    'Claude (Anthropic)',
+    'Gemini (Google)',
     'Perplexity',
-    'DeepSeek',
-    'Moonshot Kimi'
+    'Grok (xAI)'
   ]);
   const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
     'OpenAI (gpt-5.5)'

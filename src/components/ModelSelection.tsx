@@ -13,6 +13,7 @@ export const SEARCH_MODELS = [
   { id: 'tool-claude', name: 'Claude (Anthropic)', provider: 'Anthropic', desc: 'Sử dụng Claude 3.5 Sonnet / Opus' },
   { id: 'tool-gemini', name: 'Gemini (Google)', provider: 'Google', desc: 'Sử dụng Gemini Advanced' },
   { id: 'tool-perplexity', name: 'Perplexity', provider: 'Perplexity', desc: 'Tìm kiếm web thời gian thực' },
+  { id: 'tool-grok', name: 'Grok (xAI)', provider: 'xAI', desc: 'Dữ liệu thời gian thực từ X (Twitter)' },
   { id: 'tool-deepseek', name: 'DeepSeek', provider: 'DeepSeek', desc: 'Sử dụng DeepSeek Coder / Chat' },
   { id: 'tool-kimi', name: 'Moonshot Kimi', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu tiếng Trung' },
   { id: 'tool-qwen', name: 'Qwen', provider: 'Alibaba Cloud', desc: 'Chatbot đa ngôn ngữ từ Alibaba' }
