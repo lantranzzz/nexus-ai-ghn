@@ -51,7 +51,15 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
           }
         }
       } catch (e) {
-        // không tìm thấy token, tiếp tục với anon key
+        // bỏ qua
+      }
+
+      // Thử dùng auth.getUser() nếu localStorage không có
+      if (!userId) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          userId = user?.id || null;
+        } catch (e) {}
       }
 
       // Sanitize data: đảm bảo sources là mảng JSON sạch
