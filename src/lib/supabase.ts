@@ -175,37 +175,49 @@ export const getResearches = async (): Promise<{ success: boolean; data: Researc
       } catch (e) {}
 
       // Fallback đọc thẳng từ localStorage nếu hàm trên thất bại
-      if (!userId) {
-        try {
-          const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-          if (storageKey) {
-            const raw = localStorage.getItem(storageKey);
-            if (raw) {
-              const parsed = JSON.parse(raw);
-              userId = parsed?.user?.id || null;
-            }
+      let token: string | null = null;
+      try {
+        const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+        if (storageKey) {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (!userId) userId = parsed?.user?.id || null;
+            token = parsed?.access_token || null;
           }
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
 
       if (!userId) {
         throw new Error('Chưa đăng nhập hoặc phiên hết hạn.');
       }
 
-      const getQuery = supabase
-        .from('researches')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+      // Dùng fetch thay vì supabase-js để vượt qua lỗi rớt JWT token gây chặn RLS
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) => 
-        setTimeout(() => reject(new Error('Yêu cầu tải dữ liệu từ Cloud quá hạn (Timeout).')), 25000)
-      );
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/researches?user_id=eq.${userId}&order=created_at.desc`, {
+          method: 'GET',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${token || supabaseAnonKey}`
+          },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
-      const { data, error } = await Promise.race([getQuery, timeoutPromise]) as { data: any; error: any };
-
-      if (error) throw error;
-      return { success: true, data: data || [], isLocalFallback: false };
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return { success: true, data: data || [], isLocalFallback: false };
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
+      }
     } else {
       const localResearchesRaw = localStorage.getItem('nexusai_saved_researches');
       const data = localResearchesRaw ? JSON.parse(localResearchesRaw) : [];
