@@ -36,7 +36,7 @@ export interface ResearchData {
 export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>): Promise<{ success: boolean; data?: any; error?: string; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      const insertQuery = supabase
+      const { data: insertedData, error } = await supabase
         .from('researches')
         .insert([
           {
@@ -50,12 +50,6 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
           }
         ])
         .select();
-        
-      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) => 
-        setTimeout(() => reject(new Error('Yêu cầu lưu trữ lên Cloud quá hạn (Timeout). Vui lòng kiểm tra lại kết nối hoặc thông tin cấu hình Supabase.')), 25000)
-      );
-
-      const { data: insertedData, error } = await Promise.race([insertQuery, timeoutPromise]) as { data: any; error: any };
 
       if (error) throw error;
       return { success: true, data: insertedData[0], isLocalFallback: false };
