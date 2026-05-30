@@ -71,41 +71,61 @@ export default function Home() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (isSupabaseConfigured() && supabase) {
-        // Kiểm tra session hiện tại
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setIsAuthenticated(true);
-          // Tải API Keys từ Cloud về
-          const cloudKeys = await getApiKeysFromCloud();
-          if (cloudKeys) {
-            localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
-          }
-        } else {
-          setIsAuthenticated(false);
-        }
-        setIsCheckingAuth(false);
-
-        // Lắng nghe thay đổi auth
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        if (isSupabaseConfigured() && supabase) {
+          // Kiểm tra session hiện tại có timeout 10s
+          const sessionPromise = supabase.auth.getSession();
+          const authTimeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) => 
+            setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 10000)
+          );
+          
+          const { data: { session }, error } = await Promise.race([sessionPromise, authTimeoutPromise]) as { data: { session: any }, error: any };
+          if (error) throw error;
+          
           if (session) {
             setIsAuthenticated(true);
-            const cloudKeys = await getApiKeysFromCloud();
-            if (cloudKeys) {
-              localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+            // Tải API Keys từ Cloud về
+            try {
+              const cloudKeys = await getApiKeysFromCloud();
+              if (cloudKeys) {
+                localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+              }
+            } catch (e) {
+              console.error('Không tải được API Keys:', e);
             }
           } else {
             setIsAuthenticated(false);
           }
-        });
 
-        return () => subscription.unsubscribe();
-      } else {
-        // Kiểm tra trạng thái đăng nhập Local
-        const authStatus = localStorage.getItem('nexusai_auth');
-        if (authStatus === 'true') {
-          setIsAuthenticated(true);
+          // Lắng nghe thay đổi auth
+          const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session) {
+              setIsAuthenticated(true);
+              try {
+                const cloudKeys = await getApiKeysFromCloud();
+                if (cloudKeys) {
+                  localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+                }
+              } catch(e) {}
+            } else {
+              setIsAuthenticated(false);
+            }
+          });
+
+          return () => subscription.unsubscribe();
+        } else {
+          // Kiểm tra trạng thái đăng nhập Local
+          const authStatus = localStorage.getItem('nexusai_auth');
+          if (authStatus === 'true') {
+            setIsAuthenticated(true);
+          }
         }
+      } catch (err) {
+        console.error('Lỗi khi kiểm tra Auth:', err);
+        // Fallback local auth if supabase fails
+        const authStatus = localStorage.getItem('nexusai_auth');
+        if (authStatus === 'true') setIsAuthenticated(true);
+      } finally {
         setIsCheckingAuth(false);
       }
     };
