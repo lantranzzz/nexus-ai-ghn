@@ -1,14 +1,26 @@
 import React from 'react';
-import { LayoutDashboard, FileSearch, Database, Settings, LogOut, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, FileSearch, Database, Settings, LogOut, ChevronLeft, Plus, MessageSquare } from 'lucide-react';
+import { ResearchData } from '@/lib/supabase';
 
 interface SidebarProps {
   activeTab: 'research' | 'library';
   onChangeTab: (tab: 'research' | 'library') => void;
   onOpenSettings: () => void;
   onLogout: () => void;
+  history: ResearchData[];
+  onNewResearch: () => void;
+  onViewReport: (data: ResearchData) => void;
 }
 
-export default function Sidebar({ activeTab, onChangeTab, onOpenSettings, onLogout }: SidebarProps) {
+export default function Sidebar({ 
+  activeTab, 
+  onChangeTab, 
+  onOpenSettings, 
+  onLogout,
+  history,
+  onNewResearch,
+  onViewReport
+}: SidebarProps) {
   return (
     <aside className="w-64 bg-[#1A1A1A] text-gray-400 flex flex-col h-screen shrink-0 sticky top-0 border-r border-gray-800 hidden md:flex transition-all duration-300">
       {/* Brand Section */}
@@ -25,25 +37,22 @@ export default function Sidebar({ activeTab, onChangeTab, onOpenSettings, onLogo
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-6 px-3 space-y-1">
-        <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">Main Menu</div>
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto custom-scrollbar">
         
-        <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#2E1D13] text-[#F58220] border-l-2 border-[#F58220] font-medium text-sm transition-colors">
+        <button 
+          onClick={onNewResearch}
+          className="w-full flex items-center gap-3 px-3 py-2.5 mb-6 rounded-lg font-bold text-sm transition-colors bg-[#F58220] text-white hover:bg-orange-500 shadow-sm"
+        >
+          <Plus className="w-5 h-5" />
+          New Research
+        </button>
+
+        <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 mt-4">Main Menu</div>
+        
+        <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-[#252525] font-medium text-sm transition-colors">
           <LayoutDashboard className="w-4 h-4" />
           Dashboard
         </a>
-        
-        <button 
-          onClick={() => onChangeTab('research')}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-            activeTab === 'research'
-              ? 'bg-[#2E1D13] text-[#F58220] border-l-2 border-[#F58220]'
-              : 'text-gray-400 hover:text-gray-200 hover:bg-[#252525] border-l-2 border-transparent'
-          }`}
-        >
-          <FileSearch className="w-4 h-4" />
-          Competitor Research
-        </button>
 
         <button 
           onClick={() => onChangeTab('library')}
@@ -57,6 +66,24 @@ export default function Sidebar({ activeTab, onChangeTab, onOpenSettings, onLogo
           Reports Library
         </button>
 
+        {history && history.length > 0 && (
+          <>
+            <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 mt-8 mb-2">Recents</div>
+            <div className="space-y-0.5">
+              {history.map((item, idx) => (
+                <button
+                  key={item.id || idx}
+                  onClick={() => onViewReport(item)}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-[#252525] font-medium text-sm transition-colors text-left"
+                >
+                  <MessageSquare className="w-4 h-4 shrink-0 opacity-50" />
+                  <span className="truncate w-full">{item.query?.action || item.query?.scope || 'Báo cáo mới'}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
         <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 mt-6 mb-2">System</div>
         
         <button onClick={onOpenSettings} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-[#252525] font-medium text-sm transition-colors">
@@ -64,24 +91,6 @@ export default function Sidebar({ activeTab, onChangeTab, onOpenSettings, onLogo
           Settings & API
         </button>
       </nav>
-
-      {/* User Section */}
-      <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-bold border border-gray-600">
-              SM
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs text-white font-medium">Strategy Manager</span>
-              <span className="text-[10px] text-[#F58220]">GHN Executive</span>
-            </div>
-          </div>
-          <button onClick={onLogout} className="text-gray-500 hover:text-red-400 transition-colors p-2" title="Đăng xuất">
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }

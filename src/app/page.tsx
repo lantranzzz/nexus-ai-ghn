@@ -364,6 +364,12 @@ export default function Home() {
         onChangeTab={setActiveTab}
         onOpenSettings={() => setIsSettingsOpen(true)} 
         onLogout={handleLogout}
+        history={history}
+        onNewResearch={() => {
+          handleReset();
+          setActiveTab('research');
+        }}
+        onViewReport={handleViewReport}
       />
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8F9FA]">
         <TopNav onLogout={handleLogout} />
