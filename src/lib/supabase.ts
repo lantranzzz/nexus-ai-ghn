@@ -36,7 +36,7 @@ export interface ResearchData {
 export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>): Promise<{ success: boolean; data?: any; error?: string; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      // Lấy token trực tiếp từ localStorage, không dùng supabase.auth.getSession() dễ bị treo
+      // Lấy token trực tiếp từ localStorage (tránh supabase.auth.getSession() bị treo)
       let token: string | null = null;
       try {
         const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
@@ -50,34 +50,83 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
       } catch (e) {
         // không tìm thấy token, tiếp tục với anon key
       }
-      
-      const response = await fetch(`${supabaseUrl}/rest/v1/researches`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${token || supabaseAnonKey}`,
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          query: data.query,
-          research_prompts: data.research_prompts,
-          search_models: data.search_models,
-          synthesis_model: data.synthesis_model,
-          raw_inputs: data.raw_inputs || null,
-          final_report: data.final_report,
-          sources: data.sources
-        })
-      });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText || 'Lỗi kết nối từ API');
+      // Sanitize data: đảm bảo sources là mảng JSON sạch
+      const sanitizedSources = (data.sources || []).map(s => ({
+        title: String(s.title || ''),
+        url: String(s.url || ''),
+        snippet: s.snippet ? String(s.snippet) : undefined
+      }));
+
+      // Dùng AbortController để tự hủy request sau 20 giây
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+      try {
+        const response = await fetch(`${supabaseUrl}/rest/v1/researches`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${token || supabaseAnonKey}`,
+            'Prefer': 'return=representation'
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            query: data.query,
+            research_prompts: data.research_prompts,
+            search_models: data.search_models,
+            synthesis_model: data.synthesis_model,
+            raw_inputs: data.raw_inputs || null,
+            final_report: data.final_report,
+            sources: sanitizedSources
+          })
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errText = await response.text();
+          // Nếu lỗi 401/403, thử lại với anon key
+          if ((response.status === 401 || response.status === 403) && token) {
+            console.warn('Token hết hạn, thử lại với anon key...');
+            const retryResponse = await fetch(`${supabaseUrl}/rest/v1/researches`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseAnonKey,
+                'Authorization': `Bearer ${supabaseAnonKey}`,
+                'Prefer': 'return=representation'
+              },
+              body: JSON.stringify({
+                query: data.query,
+                research_prompts: data.research_prompts,
+                search_models: data.search_models,
+                synthesis_model: data.synthesis_model,
+                raw_inputs: data.raw_inputs || null,
+                final_report: data.final_report,
+                sources: sanitizedSources
+              })
+            });
+            if (!retryResponse.ok) {
+              const retryErr = await retryResponse.text();
+              throw new Error(`HTTP ${retryResponse.status}: ${retryErr}`);
+            }
+            const retryData = await retryResponse.json();
+            return { success: true, data: retryData[0], isLocalFallback: false };
+          }
+          throw new Error(`HTTP ${response.status}: ${errText || 'Lỗi không xác định từ server'}`);
+        }
+
+        const insertedData = await response.json();
+        return { success: true, data: insertedData[0], isLocalFallback: false };
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        if (fetchErr.name === 'AbortError') {
+          throw new Error('Request bị hủy sau 20 giây không phản hồi. Vui lòng kiểm tra kết nối mạng.');
+        }
+        throw fetchErr;
       }
-
-      const insertedData = await response.json();
-
-      return { success: true, data: insertedData[0], isLocalFallback: false };
     } else {
       // Fallback sang LocalStorage
       const localResearchesRaw = localStorage.getItem('nexusai_saved_researches');
@@ -89,7 +138,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
         ...data
       };
       
-      localResearches.unshift(newResearch); // Thêm vào đầu danh sách
+      localResearches.unshift(newResearch);
       localStorage.setItem('nexusai_saved_researches', JSON.stringify(localResearches));
       
       return { success: true, data: newResearch, isLocalFallback: true };
@@ -99,6 +148,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
     return { success: false, error: err.message || 'Không thể lưu dữ liệu', isLocalFallback: !isSupabaseConfigured() };
   }
 };
+
 
 // Lấy danh sách nghiên cứu đã lưu
 export const getResearches = async (): Promise<{ success: boolean; data: ResearchData[]; isLocalFallback: boolean }> => {
