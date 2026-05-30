@@ -15,15 +15,7 @@ export default function TopNav({ onLogout }: TopNavProps) {
           <Menu className="w-5 h-5" />
         </button>
         
-        {/* Search Bar */}
-        <div className="hidden sm:flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 w-full max-w-md transition-colors focus-within:border-[#F58220] focus-within:bg-white">
-          <Search className="w-4 h-4 text-gray-400 mr-2" />
-          <input 
-            type="text" 
-            placeholder="Search competitor analyses, reports..." 
-            className="bg-transparent border-none outline-none w-full text-sm text-gray-700 placeholder-gray-400 focus:ring-0"
-          />
-        </div>
+
       </div>
 
       <div className="flex items-center gap-4">
