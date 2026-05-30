@@ -47,13 +47,6 @@ export default function Sidebar({
           New Research
         </button>
 
-        <div className="px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 mt-4">Main Menu</div>
-        
-        <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-[#252525] font-medium text-sm transition-colors">
-          <LayoutDashboard className="w-4 h-4" />
-          Dashboard
-        </a>
-
         <button 
           onClick={() => onChangeTab('library')}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-sm transition-colors ${
