@@ -159,18 +159,36 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
 export const getResearches = async (): Promise<{ success: boolean; data: ResearchData[]; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      // Xác định user đang đăng nhập
-      const { data: { user } } = await supabase.auth.getUser();
+      // Xác định user đang đăng nhập một cách nghiêm ngặt
+      let userId: string | null = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        userId = user?.id || null;
+      } catch (e) {}
 
-      let getQuery = supabase
-        .from('researches')
-        .select('*');
-        
-      if (user?.id) {
-        getQuery = getQuery.eq('user_id', user.id);
+      // Fallback đọc thẳng từ localStorage nếu hàm trên thất bại
+      if (!userId) {
+        try {
+          const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          if (storageKey) {
+            const raw = localStorage.getItem(storageKey);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              userId = parsed?.user?.id || null;
+            }
+          }
+        } catch (e) {}
       }
-      
-      getQuery = getQuery.order('created_at', { ascending: false });
+
+      if (!userId) {
+        throw new Error('Chưa đăng nhập hoặc phiên hết hạn.');
+      }
+
+      const getQuery = supabase
+        .from('researches')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) => 
         setTimeout(() => reject(new Error('Yêu cầu tải dữ liệu từ Cloud quá hạn (Timeout).')), 25000)
