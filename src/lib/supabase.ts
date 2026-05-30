@@ -36,7 +36,20 @@ export interface ResearchData {
 export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>): Promise<{ success: boolean; data?: any; error?: string; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      // Lấy token trực tiếp từ localStorage, không dùng supabase.auth.getSession() dễ bị treo
+      let token: string | null = null;
+      try {
+        const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+        if (storageKey) {
+          const raw = localStorage.getItem(storageKey);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            token = parsed?.access_token || null;
+          }
+        }
+      } catch (e) {
+        // không tìm thấy token, tiếp tục với anon key
+      }
       
       const response = await fetch(`${supabaseUrl}/rest/v1/researches`, {
         method: 'POST',
