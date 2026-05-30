@@ -76,14 +76,14 @@ export default function Login({ onLogin }: LoginProps) {
                 Email đăng nhập
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#F58220] transition-colors">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#F58220] transition-colors">
                   <User className="h-5 w-5" />
                 </div>
                 <input
                   type="email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white/50 focus:bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F58220]/50 focus:border-[#F58220] transition-all"
+                  className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-white/50 focus:bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F58220]/50 focus:border-[#F58220] transition-all"
                   placeholder="Nhập email tài khoản"
                 />
               </div>
@@ -94,15 +94,15 @@ export default function Login({ onLogin }: LoginProps) {
                 Mật khẩu
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#F58220] transition-colors">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-[#F58220] transition-colors">
                   <Lock className="h-5 w-5" />
                 </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-white/50 focus:bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F58220]/50 focus:border-[#F58220] transition-all"
-                  placeholder="Nhập mật khẩu (admin)"
+                  className="block w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl bg-white/50 focus:bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#F58220]/50 focus:border-[#F58220] transition-all"
+                  placeholder="Nhập mật khẩu"
                 />
               </div>
             </div>

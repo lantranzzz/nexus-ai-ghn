@@ -167,48 +167,41 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
 export const getResearches = async (): Promise<{ success: boolean; data: ResearchData[]; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      // Xác định user đang đăng nhập một cách nghiêm ngặt
-      let userId: string | null = null;
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        userId = user?.id || null;
-      } catch (e) {}
-
-      // Fallback đọc thẳng từ localStorage nếu hàm trên thất bại
+      // Ưu tiên dùng getSession() vì supabase-js tự refresh token
       let token: string | null = null;
+      let userId: string | null = null;
+
       try {
-        const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-        if (storageKey) {
-          const raw = localStorage.getItem(storageKey);
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (!userId) userId = parsed?.user?.id || null;
-            token = parsed?.access_token || null;
-          }
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        token = session?.access_token || null;
+        userId = session?.user?.id || null;
       } catch (e) {}
 
-      if (!userId) {
-        throw new Error('Chưa đăng nhập hoặc phiên hết hạn.');
-      }
-
-      // Dùng fetch thay vì supabase-js để vượt qua lỗi rớt JWT token gây chặn RLS
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      // Nếu không có token thật (JWT), từ chối request — không bao giờ dùng anonKey để đọc
-      if (!token) {
-        // Thử lấy lại token bằng auth.getSession()
+      // Nếu getSession() thất bại, đọc thẳng từ localStorage
+      if (!token || !userId) {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
-          token = session?.access_token || null;
+          const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          if (storageKey) {
+            const raw = localStorage.getItem(storageKey);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              // Supabase lưu token ở 2 chỗ tùy version
+              token = token || parsed?.access_token || parsed?.session?.access_token || null;
+              userId = userId || parsed?.user?.id || parsed?.session?.user?.id || null;
+            }
+          }
         } catch (e) {}
       }
 
-      if (!token) {
-        // Trả về rỗng an toàn, không để lộ dữ liệu người khác
+      // Chặn tuyệt đối — không có token thật thì không trả dữ liệu
+      if (!token || !userId) {
+        console.warn('[getResearches] Không tìm thấy session hợp lệ, trả về rỗng.');
         return { success: true, data: [], isLocalFallback: false };
       }
+
+      // Dùng fetch với JWT token để vượt qua RLS
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
 
       try {
         const response = await fetch(`${supabaseUrl}/rest/v1/researches?user_id=eq.${userId}&order=created_at.desc`, {
@@ -219,13 +212,13 @@ export const getResearches = async (): Promise<{ success: boolean; data: Researc
           },
           signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
         }
-        
+
         const data = await response.json();
         return { success: true, data: data || [], isLocalFallback: false };
       } catch (fetchErr: any) {
