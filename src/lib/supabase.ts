@@ -36,22 +36,34 @@ export interface ResearchData {
 export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>): Promise<{ success: boolean; data?: any; error?: string; isLocalFallback: boolean }> => {
   try {
     if (isSupabaseConfigured() && supabase) {
-      const { data: insertedData, error } = await supabase
-        .from('researches')
-        .insert([
-          {
-            query: data.query,
-            research_prompts: data.research_prompts,
-            search_models: data.search_models,
-            synthesis_model: data.synthesis_model,
-            raw_inputs: data.raw_inputs || null,
-            final_report: data.final_report,
-            sources: data.sources
-          }
-        ])
-        .select();
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      const response = await fetch(`${supabaseUrl}/rest/v1/researches`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${token || supabaseAnonKey}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          query: data.query,
+          research_prompts: data.research_prompts,
+          search_models: data.search_models,
+          synthesis_model: data.synthesis_model,
+          raw_inputs: data.raw_inputs || null,
+          final_report: data.final_report,
+          sources: data.sources
+        })
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || 'Lỗi kết nối từ API');
+      }
+
+      const insertedData = await response.json();
+
       return { success: true, data: insertedData[0], isLocalFallback: false };
     } else {
       // Fallback sang LocalStorage
