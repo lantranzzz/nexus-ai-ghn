@@ -14,7 +14,8 @@ export const SEARCH_MODELS = [
   { id: 'tool-gemini', name: 'Gemini (Google)', provider: 'Google', desc: 'Sử dụng Gemini Advanced' },
   { id: 'tool-perplexity', name: 'Perplexity', provider: 'Perplexity', desc: 'Tìm kiếm web thời gian thực' },
   { id: 'tool-deepseek', name: 'DeepSeek', provider: 'DeepSeek', desc: 'Sử dụng DeepSeek Coder / Chat' },
-  { id: 'tool-kimi', name: 'Moonshot Kimi', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu tiếng Trung' }
+  { id: 'tool-kimi', name: 'Moonshot Kimi', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu tiếng Trung' },
+  { id: 'tool-qwen', name: 'Qwen', provider: 'Alibaba Cloud', desc: 'Chatbot đa ngôn ngữ từ Alibaba' }
 ];
 
 export const SYNTHESIS_MODELS = [
