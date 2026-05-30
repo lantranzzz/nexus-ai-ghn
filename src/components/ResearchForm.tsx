@@ -2,66 +2,66 @@ import React from 'react';
 import { Target, Users, BarChart3, ArrowRight } from 'lucide-react';
 
 interface ResearchFormProps {
-  context: string;
-  setContext: (val: string) => void;
-  goal: string;
-  setGoal: (val: string) => void;
-  competitors: string;
-  setCompetitors: (val: string) => void;
-  metrics: string;
-  setMetrics: (val: string) => void;
-  constraints: string;
-  setConstraints: (val: string) => void;
+  scope: string;
+  setScope: (val: string) => void;
+  persona: string;
+  setPersona: (val: string) => void;
+  action: string;
+  setAction: (val: string) => void;
+  rules: string;
+  setRules: (val: string) => void;
+  knowledge: string;
+  setKnowledge: (val: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
 }
 
 export default function ResearchForm({
-  context,
-  setContext,
-  goal,
-  setGoal,
-  competitors,
-  setCompetitors,
-  metrics,
-  setMetrics,
-  constraints,
-  setConstraints,
+  scope,
+  setScope,
+  persona,
+  setPersona,
+  action,
+  setAction,
+  rules,
+  setRules,
+  knowledge,
+  setKnowledge,
   onSubmit,
   isLoading
 }: ResearchFormProps) {
 
   const applyQuickTemplate = (templateType: 'j&t' | 'ninjavan' | 'tiktok') => {
     if (templateType === 'j&t') {
-      setContext('Trình bày báo cáo cho CEO trong quý tới về mảng giao hàng nhanh, đặc biệt là nhóm hàng thương mại điện tử.');
-      setGoal('Phân tích chiến lược định giá cước và tối ưu chặng cuối để cạnh tranh thị phần hàng nhẹ thương mại điện tử');
-      setCompetitors('J&T Express, SPX Express (Shopee Express)');
-      setMetrics('Bảng giá cước chi tiết các khu vực, mức chiết khấu cho khách hàng lớn (KAs), chính sách miễn cước chuyển hoàn, thuật toán tối ưu tuyến shipper chặng cuối.');
-      setConstraints('Chỉ sử dụng số liệu từ năm 2024 trở đi. Phải đưa ra bảng so sánh giá.');
+      setScope('Nghiên cứu cấu trúc giá và thuật toán chặng cuối của đối thủ để làm báo cáo chiến lược cho CEO.');
+      setPersona('Bạn là Strategy Manager tại Giao Hàng Nhanh (GHN), chuyên gia phân tích dữ liệu logistics với 10 năm kinh nghiệm. Phục vụ Ban Giám đốc.');
+      setAction('1. Tìm kiếm bảng giá cước nội tỉnh và liên tỉnh của J&T và SPX. 2. Phân tích thuật toán định tuyến chặng cuối. 3. Đưa ra 3 khuyến nghị hành động.');
+      setRules('MUST: Bảng giá dưới dạng table Markdown. MUST NOT: Không dùng thông tin cũ trước 2024. Cấm phân tích hàng cồng kềnh.');
+      setKnowledge('Ví dụ: Tham khảo format báo cáo McKinsey. Cước phí tiêu chuẩn J&T <2kg: 16.500 VNĐ.');
     } else if (templateType === 'ninjavan') {
-      setContext('Dự án nâng cấp hệ thống Fulfillment cho các khách hàng B2B lớn trong năm sau.');
-      setGoal('Đánh giá mô hình quản lý kho thông minh và dịch vụ hoàn tất đơn hàng (Fulfillment) cho các nhà bán hàng đa kênh');
-      setCompetitors('Ninja Van, Viettel Post');
-      setMetrics('Diện tích phân bổ kho bãi, chi phí lưu kho, công nghệ tự động hóa chia chọn (AGV/băng tải chéo), các tính năng tích hợp API quản lý tồn kho.');
-      setConstraints('Phải phân tích cấu trúc chi phí kho bãi nội thành so với vùng ven.');
+      setScope('Đánh giá công nghệ kho thông minh nội đô và Fulfillment B2B để nâng cấp hệ thống.');
+      setPersona('Bạn là Giám đốc Công nghệ (CTO) và Vận hành. Đọc giả là Head of Fulfillment.');
+      setAction('1. Thu thập tỷ lệ áp dụng AGV của Ninja Van và Viettel Post. 2. Tính toán chi phí lưu kho mỗi m2 tại vùng ven vs nội đô. 3. So sánh tính năng API WMS.');
+      setRules('MUST: Phải có số liệu diện tích và chi phí ước tính. MUST NOT: Không nhắc tới hàng xuyên biên giới.');
+      setKnowledge('Lưu ý: Viettel Post vừa mở Mega Hub ở Bình Dương.');
     } else if (templateType === 'tiktok') {
-      setContext('Nghiên cứu khả thi mở rộng thị trường chuyển phát xuyên biên giới nhập hàng từ Trung Quốc.');
-      setGoal('Nghiên cứu xu hướng vận chuyển e-commerce xuyên biên giới và tác động của các nền tảng social commerce mới');
-      setCompetitors('Best Express, J&T Global, Cainiao (Alibaba)');
-      setMetrics('Thời gian trung chuyển từ kho Trung Quốc về Việt Nam, mức thuế và thủ tục hải quan thông quan, cước vận chuyển chặng quốc tế, mô hình liên kết hãng bay và bưu cục nội địa.');
-      setConstraints('Ưu tiên thu thập dữ liệu bằng tiếng Trung. Báo cáo không được quá 5 trang.');
+      setScope('Phân tích tiềm năng mở rộng vận tải xuyên biên giới (Cross-border) cho hàng thương mại điện tử từ Trung Quốc.');
+      setPersona('Bạn là Chuyên gia phát triển thị trường xuyên biên giới (Cross-border Logistics Expert).');
+      setAction('1. Quét dữ liệu thời gian trung chuyển và thủ tục hải quan từ Quảng Châu về Hà Nội. 2. Phân tích biểu phí của Best Express và Cainiao. 3. Xác định cơ hội cho GHN.');
+      setRules('MUST: Trả lời bằng tiếng Việt chuyên ngành Logistics. MUST NOT: Không vượt quá 5 trang. Không viết lan man.');
+      setKnowledge('Từ khóa: Tờ khai hải quan điện tử, Cainiao WMS, Hub Bằng Tường.');
     }
   };
 
-  const isFormValid = goal.trim() !== '' && competitors.trim() !== '' && metrics.trim() !== '' && context.trim() !== '';
+  const isFormValid = scope.trim() !== '' && persona.trim() !== '' && action.trim() !== '';
 
   return (
     <form onSubmit={onSubmit} className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-8 animate-fade">
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
         <div>
-          <h3 className="text-base md:text-lg font-bold text-gray-800">Định Hướng Nghiên Cứu Chiến Lược</h3>
-          <p className="text-xs text-gray-500">Cung cấp mục tiêu cụ thể để Tổng Biên Tập xây dựng kế hoạch tối ưu</p>
+          <h3 className="text-base md:text-lg font-bold text-gray-800">Định Hướng Nghiên Cứu Chiến Lược (Áp dụng SPARK Method)</h3>
+          <p className="text-xs text-gray-500">Cung cấp bối cảnh rõ ràng theo chuẩn S-P-A-R-K để AI nghiên cứu chính xác nhất</p>
         </div>
         
         {/* Nút gợi ý nhanh */}
@@ -92,81 +92,81 @@ export default function ResearchForm({
       </div>
 
       <div className="space-y-5">
-        {/* Ô 1: Bối cảnh */}
+        {/* Ô 1: S - SCOPE */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-[#F58220]" />
-            1. Bối cảnh nghiên cứu (Context/Background)
+            1. SCOPE - Phạm vi nghiên cứu (Kích hoạt khi nào?)
           </label>
           <textarea
             required
             rows={2}
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder="Ví dụ: Cần chuẩn bị báo cáo cho Ban Giám Đốc vào tuần tới về xu hướng giao hàng thương mại điện tử..."
+            value={scope}
+            onChange={(e) => setScope(e.target.value)}
+            placeholder="Ví dụ: Đợt nghiên cứu này nhằm phân tích giá cước của đối thủ để làm báo cáo chiến lược..."
             className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
           />
         </div>
 
-        {/* Ô 2: Chủ đề / Mục tiêu */}
-        <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-[#F58220]" />
-            2. Chủ đề / Mục tiêu cốt lõi của nghiên cứu này là gì?
-          </label>
-          <textarea
-            required
-            rows={2}
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            placeholder="Ví dụ: Phân tích cơ chế tối ưu hóa chi phí vận hành chặng cuối và mạng lưới bưu cục nhằm cạnh tranh..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
-          />
-        </div>
-
-        {/* Ô 3: Đối thủ cạnh tranh */}
+        {/* Ô 2: P - PERSONA */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <Users className="w-4 h-4 text-[#F58220]" />
-            3. Các đối thủ cạnh tranh hoặc doanh nghiệp mục tiêu cần phân tích?
-          </label>
-          <input
-            required
-            type="text"
-            value={competitors}
-            onChange={(e) => setCompetitors(e.target.value)}
-            placeholder="Ví dụ: J&T Express, SPX Express, Viettel Post..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all text-gray-800"
-          />
-        </div>
-
-        {/* Ô 4: Chỉ số quan tâm */}
-        <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <BarChart3 className="w-4 h-4 text-[#F58220]" />
-            4. Các chỉ số hoặc khía cạnh bạn đặc biệt quan tâm (Giá cước, mạng lưới, kho bãi...)?
+            2. PERSONA - Vai trò & Đối tượng (Ai làm? Cho ai?)
           </label>
           <textarea
             required
             rows={2}
-            value={metrics}
-            onChange={(e) => setMetrics(e.target.value)}
-            placeholder="Ví dụ: Chính sách chiết khấu KAs, tỷ lệ hoàn trả hàng (Return rate), diện tích và mức độ tự động hóa kho bãi..."
+            value={persona}
+            onChange={(e) => setPersona(e.target.value)}
+            placeholder="Ví dụ: Bạn là Chuyên gia phân tích chiến lược. Đối tượng đọc báo cáo là CEO..."
             className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
           />
         </div>
 
-        {/* Ô 5: Ràng buộc (Tùy chọn) */}
+        {/* Ô 3: A - ACTION */}
+        <div className="space-y-1.5">
+          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
+            <BarChart3 className="w-4 h-4 text-[#F58220]" />
+            3. ACTION - Quy trình thực thi (Các bước cần AI làm rõ)
+          </label>
+          <textarea
+            required
+            rows={3}
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+            placeholder="Ví dụ: 1. Tìm bảng giá J&T. 2. So sánh với GHN. 3. Đề xuất phương án giảm giá cước..."
+            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+          />
+        </div>
+
+        {/* Ô 4: R - RULES */}
+        <div className="space-y-1.5">
+          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
+            <Target className="w-4 h-4 text-[#F58220]" />
+            4. RULES - Ràng buộc (MUST: Bắt buộc / MUST NOT: Cấm)
+          </label>
+          <textarea
+            required
+            rows={3}
+            value={rules}
+            onChange={(e) => setRules(e.target.value)}
+            placeholder="Ví dụ: MUST: Trình bày dạng bảng so sánh. MUST NOT: Không dùng dữ liệu trước năm 2024..."
+            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+          />
+        </div>
+
+        {/* Ô 5: K - KNOWLEDGE */}
         <div className="space-y-1.5">
           <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
             <Target className="w-4 h-4 text-gray-400" />
-            5. Các ràng buộc (Constraints) - Tùy chọn
+            5. KNOWLEDGE - Kiến thức nền (Ví dụ mẫu, từ khóa tham khảo)
           </label>
           <textarea
             rows={2}
-            value={constraints}
-            onChange={(e) => setConstraints(e.target.value)}
-            placeholder="Ví dụ: Chỉ lấy số liệu báo cáo tài chính từ năm 2024, không phân tích mảng giao hàng quốc tế..."
+            value={knowledge}
+            onChange={(e) => setKnowledge(e.target.value)}
+            placeholder="Ví dụ: Nhớ chú ý tới Mega Hub mới mở của Viettel Post, thuật ngữ WMS 5.0..."
             className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
           />
         </div>

@@ -4,11 +4,11 @@ import { callAIProvider } from '@/lib/ai';
 // Định nghĩa kiểu dữ liệu request body
 interface PlanRequest {
   query: {
-    context: string;
-    goal: string;
-    competitors: string;
-    metrics: string;
-    constraints: string;
+    scope: string;
+    persona: string;
+    action: string;
+    rules: string;
+    knowledge: string;
   };
   synthesisModel: string;
   searchModels: string[];
@@ -16,38 +16,30 @@ interface PlanRequest {
 }
 
 // Hàm sinh mock data chất lượng cao nếu không có API key
-const generateMockPlan = (goal: string, competitors: string, metrics: string, searchModels: string[], synthesisModel: string) => {
+const generateMockPlan = (query: PlanRequest['query'], searchModels: string[], synthesisModel: string) => {
   const prompts: Record<string, string> = {};
   
   searchModels.forEach(model => {
     if (model.includes('Moonshot') || model.includes('Kimi') || model.includes('DeepSeek')) {
       prompts[model] = `请进行深入研究并严格用中文回复。(Note: The inputs below might be in Vietnamese, please translate and understand them internally)
-研究主题: "${goal}"
-竞争对手/目标分析: "${competitors}"
-核心关注维度: "${metrics}"
+任务范围 (Scope): "${query.scope}"
+行动指南 (Action): "${query.action}"
+限制条件 (Rules): "${query.rules}"
 
-请利用您的中文本土搜索与分析优势，深入调研中国物流行业、智能仓储、跨境电商物流（如极兔 J&T, 菜鸟, 顺丰 SF Express 等）在上述维度的最佳实践、运营模式、中港/跨境运费结构以及最新的行业白皮书。
-请重点挖掘：
-1. 仓配一体化与自动化网络布局。
-2. 针对此类竞争对手的最新中资背景物流企业的出海策略及价格战应对策略。
 请使用中文输出，并附带权威行业报告链接或参考来源。`;
     } else {
-      prompts[model] = `Please conduct an in-depth research and reply strictly in English. (Note: The inputs below might be in Vietnamese, please translate and understand them internally before searching)
-Goal: "${goal}"
-Competitors: "${competitors}"
-Metrics: "${metrics}"
+      prompts[model] = `Please conduct an in-depth research and reply strictly in English.
+Scope: "${query.scope}"
+Action: "${query.action}"
+Rules: "${query.rules}"
 
-Conduct an in-depth, up-to-date web search regarding the goal. 
-Specifically analyze our core competitors on the specified aspects.
-Search for official industry reports, market shares, financial filings, pricing structures, and recent logistics news. 
-Focus on quantitative metrics, pricing tables, and network expansion announcements from 2025/2026. 
 BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong văn bản theo định dạng [Source](URL) tại bất kỳ chỗ nào bạn đưa ra số liệu hoặc thông tin. KHÔNG ĐƯỢC CHỈ ĐỂ LINK Ở CUỐI BÀI. Tôi cần copy paste kết quả của bạn nên link phải nằm ngay trong text.`;
     }
   });
 
   return {
     prompts,
-    planning_summary: `[Chế độ thử nghiệm] Đã lập kế hoạch nghiên cứu chiến lược cho mục tiêu "${goal}". Tổng biên tập [${synthesisModel}] đã phân tích các đối thủ (${competitors}) và tự động biên soạn ${searchModels.length} đoạn prompt tối ưu riêng biệt gửi tới các Search Models song song để khai thác sâu về khía cạnh "${metrics}".`,
+    planning_summary: `[Chế độ thử nghiệm] Đã lập kế hoạch nghiên cứu chiến lược cho mục tiêu "${query.scope}". Tổng biên tập [${synthesisModel}] đã biên soạn ${searchModels.length} đoạn prompt tối ưu riêng biệt gửi tới các Search Models song song dựa trên SPARK method.`,
     isMocked: true
   };
 };
@@ -57,9 +49,9 @@ export async function POST(req: Request) {
     const body: PlanRequest = await req.json();
     const { query, synthesisModel, searchModels, apiKeys } = body;
 
-    if (!query || !query.goal || !synthesisModel || !searchModels || searchModels.length === 0) {
+    if (!query || !query.scope || !synthesisModel || !searchModels || searchModels.length === 0) {
       return NextResponse.json(
-        { error: 'Vui lòng cung cấp đầy đủ thông tin: Mục tiêu nghiên cứu, Model tổng hợp và ít nhất 1 Model tìm tin.' },
+        { error: 'Vui lòng cung cấp đầy đủ thông tin SCOPE, PERSONA, ACTION để hệ thống có thể tạo prompt.' },
         { status: 400 }
       );
     }
@@ -91,7 +83,7 @@ export async function POST(req: Request) {
     // Nếu không có API Key, tự động chuyển sang chế độ Mock cao cấp
     if (!synthesisApiKey) {
       console.log(`Không tìm thấy API Key cho ${provider}. Kích hoạt chế độ lập kế hoạch thử nghiệm chất lượng cao.`);
-      const mockResult = generateMockPlan(query.goal, query.competitors, query.metrics, searchModels, synthesisModel);
+      const mockResult = generateMockPlan(query, searchModels, synthesisModel);
       return NextResponse.json(mockResult);
     }
 
@@ -108,12 +100,12 @@ Bắt buộc phản hồi dưới dạng JSON thuần túy (không bọc trong t
   "planning_summary": "Tóm tắt bằng TIẾNG VIỆT về kế hoạch hành động chiến lược và lý do thiết kế các prompt này..."
 }`;
 
-    const userPrompt = `Dữ liệu nghiên cứu của Strategy Manager:
-- Bối cảnh (Context): "${query.context}"
-- Chủ đề/Mục tiêu (Goal): "${query.goal}"
-- Đối thủ cần phân tích: "${query.competitors}"
-- Khía cạnh cần tập trung: "${query.metrics}"
-- Các ràng buộc (Constraints): "${query.constraints || 'Không có'}"
+    const userPrompt = `Dữ liệu nghiên cứu của người dùng (Theo phương pháp SPARK):
+- S (Scope): "${query.scope}"
+- P (Persona): "${query.persona}"
+- A (Action): "${query.action}"
+- R (Rules): "${query.rules || 'Không có ràng buộc cụ thể'}"
+- K (Knowledge): "${query.knowledge || 'Không có kiến thức nền bổ sung'}"
 
 Danh sách các Search Models (Chatbot Tools) được chọn để gửi prompt:
 ${searchModels.map(m => `- ${m}`).join('\n')}
@@ -121,8 +113,8 @@ ${searchModels.map(m => `- ${m}`).join('\n')}
 Hãy tạo ra các prompt chuyên sâu tương ứng cho từng Chatbot Tool. BẠN PHẢI tối ưu hóa để người dùng Copy-Paste những prompt này vào ChatGPT/Perplexity/Kimi.
 Lưu ý đặc biệt:
 - YÊU CẦU BẮT BUỘC CHUNG: BẠN PHẢI thêm lệnh này vào mọi prompt: "BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong văn bản theo định dạng [Source](URL) tại bất kỳ chỗ nào bạn đưa ra số liệu hoặc thông tin. KHÔNG ĐƯỢC CHỈ ĐỂ LINK Ở CUỐI BÀI. Tôi cần copy paste kết quả của bạn nên link phải nằm ngay trong text."
-- Nếu tên chatbot chứa "OpenAI", "GPT", "Anthropic", "Claude", "Google", "Gemini", hoặc "Perplexity": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG ANH (English). Phải bắt đầu prompt bằng câu: "Please conduct an in-depth research and reply strictly in English." Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Goal, Context, Competitors, Metrics, Constraints) sang Tiếng Anh.
-- Nếu tên chatbot chứa "DeepSeek", "Moonshot", hoặc "Kimi": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG TRUNG (Chinese). Phải bắt đầu prompt bằng câu: "请进行深入研究并严格用中文回复。" Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Goal, Context, Competitors, Metrics, Constraints) sang Tiếng Trung.
+- Nếu tên chatbot chứa "OpenAI", "GPT", "Anthropic", "Claude", "Google", "Gemini", hoặc "Perplexity": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG ANH (English). Phải bắt đầu prompt bằng câu: "Please conduct an in-depth research and reply strictly in English." Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Scope, Persona, Action, Rules, Knowledge) sang Tiếng Anh.
+- Nếu tên chatbot chứa "DeepSeek", "Moonshot", hoặc "Kimi": BẠN PHẢI VIẾT PROMPT HOÀN TOÀN BẰNG TIẾNG TRUNG (Chinese). Phải bắt đầu prompt bằng câu: "请进行深入研究并严格用中文回复。" Bạn PHẢI DỊCH TẤT CẢ các đầu vào (Scope, Persona, Action, Rules, Knowledge) sang Tiếng Trung.
 - TUYỆT ĐỐI KHÔNG SỬ DỤNG TIẾNG VIỆT TRONG BẤT KỲ PROMPT NÀO (kể cả khi trích dẫn các đầu vào của người dùng, bạn cũng phải dịch chúng sang ngôn ngữ đích tương ứng). Tiếng Việt chỉ được sử dụng duy nhất ở trường "planning_summary".`;
 
     try {
@@ -144,7 +136,7 @@ Lưu ý đặc biệt:
       } catch (parseError) {
         console.error('Lỗi parse JSON phản hồi AI:', response.content);
         // Fallback tạo mock nếu lỗi parse
-        const mockResult = generateMockPlan(query.goal, query.competitors, query.metrics, searchModels, synthesisModel);
+        const mockResult = generateMockPlan(query, searchModels, synthesisModel);
         return NextResponse.json({
           ...mockResult,
           warning: 'Không thể parse JSON từ AI, hệ thống tự động sử dụng mẫu tối ưu hóa.'

@@ -21,17 +21,17 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   // Dữ liệu Form
-  const [context, setContext] = useState<string>('');
-  const [goal, setGoal] = useState<string>('');
-  const [competitors, setCompetitors] = useState<string>('');
-  const [metrics, setMetrics] = useState<string>('');
-  const [constraints, setConstraints] = useState<string>('');
+  const [scope, setScope] = useState<string>('');
+  const [persona, setPersona] = useState<string>('');
+  const [action, setAction] = useState<string>('');
+  const [rules, setRules] = useState<string>('');
+  const [knowledge, setKnowledge] = useState<string>('');
 
   // Lựa chọn Model mặc định
   const [selectedSearchModels, setSelectedSearchModels] = useState<string[]>([
-    'Perplexity (sonar-pro)',
-    'DeepSeek (deepseek-chat)',
-    'Moonshot AI (kimi-api)'
+    'Perplexity',
+    'DeepSeek',
+    'Moonshot Kimi'
   ]);
   const [selectedSynthesisModel, setSelectedSynthesisModel] = useState<string>(
     'OpenAI (gpt-5.5)'
@@ -157,17 +157,19 @@ export default function Home() {
     setLoadingMessage('Đang kết nối Model Tổng Biên Tập để lập kế hoạch & tối ưu prompt...');
 
     try {
+      const payload = {
+        query: { scope, persona, action, rules, knowledge },
+        synthesisModel: selectedSynthesisModel,
+        searchModels: selectedSearchModels,
+        apiKeys: apiKeys
+      };
+      
       const response = await fetch('/api/orchestrate/plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: { context, goal, competitors, metrics, constraints },
-          synthesisModel: selectedSynthesisModel,
-          searchModels: selectedSearchModels,
-          apiKeys
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -189,7 +191,7 @@ export default function Home() {
 
   // GIAI ĐOẠN 2: THỰC THI API SONG SONG & BIÊN SOẠN TỔNG HỢP
   const handleExecuteResearch = async () => {
-    const apiKeys = getStoredApiKeys();
+    const activeApiKeys = getStoredApiKeys();
     
     // Kiểm tra xem Model Tổng Biên Tập có API Key chưa
     let requiredKeyName = '';
@@ -198,7 +200,7 @@ export default function Home() {
     else if (synthesisLower.includes('gpt') || synthesisLower.includes('o1')) requiredKeyName = 'openai';
     else if (synthesisLower.includes('gemini')) requiredKeyName = 'google';
     
-    if (requiredKeyName && !apiKeys[requiredKeyName as keyof typeof apiKeys]) {
+    if (requiredKeyName && !activeApiKeys[requiredKeyName as keyof typeof activeApiKeys]) {
       alert(`Bạn chưa cấu hình API Key cho ${requiredKeyName.toUpperCase()} - model đang được chọn làm Tổng Biên Tập. Vui lòng thêm Key trong phần Cài đặt trước khi chạy.`);
       setIsSettingsOpen(true);
       return;
@@ -207,14 +209,13 @@ export default function Home() {
     setStep('researching');
     setLoadingMessage('Bắt đầu chuyển giao dữ liệu thô cho Model Tổng Biên Tập...');
 
-    // Giả lập cập nhật trạng thái hiển thị cho mượt mà
     const progressMessages = [
       'Bắt đầu gọi API song song tới các model Tìm Tin (Search)...',
       'Đang truy tìm dữ liệu logistics toàn cầu (Perplexity)...',
-      'Đang khai thác dữ liệu chuỗi cung ứng thông minh từ Trung Quốc (Kimi)...',
+      'Đang khai thác dữ liệu chuỗi cung ứng thông minh...',
       'Đang phân tích cấu trúc chi phí & lập luận toán học (DeepSeek)...',
       'Đã thu thập dữ liệu thô. Đang chuyển giao cho Model Tổng Biên Tập...',
-      'Tổng Biên Tập đang dịch các thuật ngữ chuyên ngành tiếng Anh/Trung sang Việt...',
+      'Tổng Biên Tập đang dịch các thuật ngữ chuyên ngành...',
       'Tổng Biên Tập đang đối chiếu fact-check mâu thuẫn dữ liệu...',
       'Đang biên soạn báo cáo phân tích chiến lược cuối cùng...'
     ];
@@ -228,18 +229,20 @@ export default function Home() {
     }, 4000);
 
     try {
+      const payload = {
+        query: { scope, persona, action, rules, knowledge },
+        synthesisModel: selectedSynthesisModel,
+        searchModels: selectedSearchModels,
+        rawInputs: rawInputs,
+        apiKeys: activeApiKeys
+      };
+      
       const response = await fetch('/api/orchestrate/research', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query: { context, goal, competitors, metrics, constraints },
-          synthesisModel: selectedSynthesisModel,
-          searchModels: selectedSearchModels,
-          rawInputs,
-          apiKeys
-        }),
+        body: JSON.stringify(payload),
       });
 
       clearInterval(interval);
@@ -255,7 +258,6 @@ export default function Home() {
       setIsReportMocked(!!data.isMocked);
       setStep('result');
       
-      // Tải lại lịch sử nghiên cứu
       loadHistory();
     } catch (err: any) {
       clearInterval(interval);
@@ -267,23 +269,27 @@ export default function Home() {
 
   // Tải lại nghiên cứu lịch sử
   const handleLoadHistoryItem = (item: ResearchData) => {
-    setGoal(item.query.goal);
-    setCompetitors(item.query.competitors);
-    setMetrics(item.query.metrics);
+    setScope(item.query.scope);
+    setPersona(item.query.persona);
+    setAction(item.query.action);
+    setRules(item.query.rules);
+    setKnowledge(item.query.knowledge);
     setPrompts(item.research_prompts);
     setSelectedSearchModels(item.search_models);
     setSelectedSynthesisModel(item.synthesis_model);
     setReport(item.final_report);
     setSources(item.sources);
-    setIsReportMocked(false); // Đã lưu vào DB coi như là báo cáo hoàn chỉnh
+    setIsReportMocked(false); 
     setStep('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleReset = () => {
-    setGoal('');
-    setCompetitors('');
-    setMetrics('');
+    setScope('');
+    setPersona('');
+    setAction('');
+    setRules('');
+    setKnowledge('');
     setPrompts({});
     setReport('');
     setSources([]);
@@ -303,16 +309,13 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
       
-      {/* Sidebar Navigation */}
       <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <TopNav />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 space-y-10 pb-20">
         
-        {/* Loading / Progress State */}
         {(step === 'planning' || step === 'researching') && (
           <div className="bg-white p-12 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
             <div className="relative">
@@ -341,30 +344,21 @@ export default function Home() {
           </div>
         )}
 
-        {/* STEP 1 & 2: FORM NHẬP LIỆU & MODEL SELECTION */}
         {step === 'form' && (
           <div className="space-y-12">
             
-            {/* Giới thiệu tính năng */}
             <div className="bg-gradient-to-r from-orange-50 to-white p-6 rounded-2xl border border-orange-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="space-y-1">
                 <h2 className="text-lg md:text-xl font-black text-gray-800 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-[#F58220]" />
-                  NexusAI: Nền Tảng Nghiên Cứu Đối Thủ Cạnh Tranh & Chiến Lược
+                  NexusAI: Nền Tảng Nghiên Cứu Chiến Lược
                 </h2>
                 <p className="text-xs text-gray-600 leading-relaxed max-w-3xl">
-                  Dành riêng cho <strong>Strategy Manager Giao Hàng Nhanh (GHN)</strong>. Ứng dụng điều phối hai giai đoạn chuyên sâu: Lập kế hoạch sinh prompt bằng mô hình Tổng biên tập thượng tầng, chạy song song tìm kiếm dữ liệu thị trường và dịch thuật, fact-check biên soạn thành báo cáo hoàn chỉnh.
+                  Ứng dụng điều phối hai giai đoạn chuyên sâu: Lập kế hoạch sinh prompt bằng mô hình Tổng biên tập thượng tầng, chạy song song tìm kiếm dữ liệu thị trường và biên soạn báo cáo hoàn chỉnh.
                 </p>
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <span className="text-[11px] font-bold px-3 py-1.5 bg-[#F58220] text-white rounded-full shadow-sm flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  Chuẩn Thương Hiệu GHN
-                </span>
               </div>
             </div>
 
-            {/* Cấu hình Models */}
             <ModelSelection
               selectedSearchModels={selectedSearchModels}
               setSelectedSearchModels={setSelectedSearchModels}
@@ -372,23 +366,21 @@ export default function Home() {
               setSelectedSynthesisModel={setSelectedSynthesisModel}
             />
 
-            {/* Form Nghiên cứu */}
             <ResearchForm
-              context={context}
-              setContext={setContext}
-              goal={goal}
-              setGoal={setGoal}
-              competitors={competitors}
-              setCompetitors={setCompetitors}
-              metrics={metrics}
-              setMetrics={setMetrics}
-              constraints={constraints}
-              setConstraints={setConstraints}
+              scope={scope}
+              setScope={setScope}
+              persona={persona}
+              setPersona={setPersona}
+              action={action}
+              setAction={setAction}
+              rules={rules}
+              setRules={setRules}
+              knowledge={knowledge}
+              setKnowledge={setKnowledge}
               onSubmit={handlePlanResearch}
               isLoading={false}
             />
 
-            {/* BẢNG LỊCH SỬ NGHIÊN CỨU CHIẾN LƯỢC */}
             <div className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-6">
               <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -427,10 +419,10 @@ export default function Home() {
                           </span>
                         </div>
                         <h4 className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-[#F58220] transition-colors">
-                          {item.query.goal}
+                          {item.query.scope}
                         </h4>
                         <p className="text-[10px] text-gray-500 line-clamp-2">
-                          <strong>Đối thủ:</strong> {item.query.competitors}
+                          <strong>Role:</strong> {item.query.persona}
                         </p>
                       </div>
                       
@@ -486,7 +478,7 @@ export default function Home() {
           <ReportView
             report={report}
             sources={sources}
-            query={{ context, goal, competitors, metrics, constraints }}
+            query={{ scope, persona, action, rules, knowledge }}
             searchModels={selectedSearchModels}
             synthesisModel={selectedSynthesisModel}
             prompts={prompts}

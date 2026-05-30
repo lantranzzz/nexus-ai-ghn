@@ -9,19 +9,16 @@ interface ModelSelectionProps {
 }
 
 export const SEARCH_MODELS = [
-  { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', desc: 'Mô hình đa nhiệm chuẩn cao' },
-  { id: 'anthropic-claude-3-5-sonnet', name: 'Anthropic (claude-3-5-sonnet)', provider: 'Anthropic', desc: 'Lập luận nhanh và xuất sắc' },
-  { id: 'google-gemini-1-5-pro', name: 'Google (gemini-1.5-pro)', provider: 'Google', desc: 'Xử lý ngữ cảnh cực lớn' },
-  { id: 'perplexity-sonar-pro', name: 'Perplexity (sonar-pro)', provider: 'Perplexity', desc: 'Tìm kiếm web thời gian thực' },
-  { id: 'deepseek-chat', name: 'DeepSeek (deepseek-chat)', provider: 'DeepSeek', desc: 'Lập luận logic toán học sâu' },
-  { id: 'moonshot-kimi', name: 'Moonshot AI (kimi-api)', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu siêu mạnh' }
+  { id: 'tool-chatgpt', name: 'ChatGPT (OpenAI)', provider: 'OpenAI', desc: 'Sử dụng ChatGPT Plus / Pro' },
+  { id: 'tool-claude', name: 'Claude (Anthropic)', provider: 'Anthropic', desc: 'Sử dụng Claude 3.5 Sonnet / Opus' },
+  { id: 'tool-gemini', name: 'Gemini (Google)', provider: 'Google', desc: 'Sử dụng Gemini Advanced' },
+  { id: 'tool-perplexity', name: 'Perplexity', provider: 'Perplexity', desc: 'Tìm kiếm web thời gian thực' },
+  { id: 'tool-deepseek', name: 'DeepSeek', provider: 'DeepSeek', desc: 'Sử dụng DeepSeek Coder / Chat' },
+  { id: 'tool-kimi', name: 'Moonshot Kimi', provider: 'Moonshot AI', desc: 'Đọc hiểu tài liệu tiếng Trung' }
 ];
 
 export const SYNTHESIS_MODELS = [
-  { id: 'openai-gpt-5.5', name: 'OpenAI (gpt-5.5)', provider: 'OpenAI', label: 'GPT-5.5 - Trí tuệ siêu việt chuyên gia' },
-  { id: 'openai-gpt-4o', name: 'OpenAI (gpt-4o)', provider: 'OpenAI', label: 'GPT-4o - Tổng hợp dữ liệu đa năng' },
-  { id: 'openai-o1-mini', name: 'OpenAI (o1-mini)', provider: 'OpenAI', label: 'o1-mini - Suy luận logic tốc độ cao' },
-  { id: 'openai-o3-mini', name: 'OpenAI (o3-mini)', provider: 'OpenAI', label: 'o3-mini - Suy luận chuyên sâu' }
+  { id: 'openai-gpt-5.5', name: 'OpenAI (gpt-5.5)', provider: 'OpenAI', label: 'GPT-5.5 - Trí tuệ siêu việt chuyên gia' }
 ];
 
 export default function ModelSelection({
@@ -50,8 +47,8 @@ export default function ModelSelection({
         <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
           <Search className="w-5 h-5 text-[#F58220]" />
           <div>
-            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 1: Chọn Model Tìm Tin (Chạy Song Song)</h3>
-            <p className="text-xs text-gray-500">Các model sẽ đồng thời tìm kiếm thông tin theo thế mạnh riêng biệt</p>
+            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 1: Chọn Tool Tìm Tin (Manual Copy-Paste)</h3>
+            <p className="text-xs text-gray-500">Model Tổng biên tập sẽ tạo prompt tối ưu cho từng tool này để bạn copy qua</p>
           </div>
         </div>
 

@@ -14,11 +14,11 @@ interface ReportViewProps {
   report: string;
   sources: Source[];
   query: {
-    context: string;
-    goal: string;
-    competitors: string;
-    metrics: string;
-    constraints: string;
+    scope: string;
+    persona: string;
+    action: string;
+    rules: string;
+    knowledge: string;
   };
   searchModels: string[];
   synthesisModel: string;

@@ -18,11 +18,11 @@ export interface ResearchData {
   id?: string;
   created_at?: string;
   query: {
-    context: string;
-    goal: string;
-    competitors: string;
-    metrics: string;
-    constraints: string;
+    scope: string;
+    persona: string;
+    action: string;
+    rules: string;
+    knowledge: string;
   };
   research_prompts: Record<string, string>;
   search_models: string[];

@@ -3,11 +3,11 @@ import { callAIProvider } from '@/lib/ai';
 
 interface ResearchRequest {
   query: {
-    context: string;
-    goal: string;
-    competitors: string;
-    metrics: string;
-    constraints: string;
+    scope: string;
+    persona: string;
+    action: string;
+    rules: string;
+    knowledge: string;
   };
   synthesisModel: string;
   searchModels: string[];
@@ -17,13 +17,13 @@ interface ResearchRequest {
 }
 
 // 1. SINH KẾT QUẢ TÌM KIẾM MẪU (MOCK SEARCH RESULTS)
-const getMockSearchResult = (model: string, query: { goal: string; competitors: string; metrics: string }): string => {
-  const { goal, competitors, metrics } = query;
+const getMockSearchResult = (model: string, query: { scope: string; action: string; rules: string }): string => {
+  const { scope, action, rules } = query;
   const timestamp = new Date().toLocaleDateString('vi-VN');
   
   if (model.includes('Perplexity')) {
     return `[PERPLEXITY SEARCH RESPONSE - ${timestamp}]
-Core focus: Analyzing ${competitors} regarding "${goal}" and "${metrics}".
+Core focus: Analyzing regarding "${scope}" and "${action}".
 
 Key Findings from Global & Local Sources (J&T Express, Shopee Express/SPX, Viettel Post):
 1. PRICING STRUCTURE:
@@ -43,7 +43,7 @@ Sources:
   
   if (model.includes('Moonshot') || model.includes('Kimi')) {
     return `[MOONSHOT/KIMI RESEARCH RESPONSE - ${timestamp}]
-关于“${competitors}”在“${metrics}”层面的中国供应链与先进仓储模式调研报告。
+关于“${scope}”层面的调研报告。
 
 结合中国先进快递巨头（极兔速递 J&T, 顺丰速递 SF Express, 菜鸟物流 Cainiao）的运营经验与技术沉淀：
 1. 智能仓配一体化 (Smart Warehousing & Full-fillment):
@@ -61,7 +61,7 @@ Sources:
 
   if (model.includes('DeepSeek')) {
     return `[DEEPSEEK LOGICAL ANALYSIS - ${timestamp}]
-Phân tích chuyên sâu kiến trúc vận hành và thuật toán tối ưu của các đối thủ cạnh tranh: "${competitors}" đối với mục tiêu "${goal}".
+Phân tích chuyên sâu kiến trúc vận hành và thuật toán tối ưu đối với mục tiêu "${scope}" và hành động "${action}".
 
 1. Thuật toán Định tuyến & Tối ưu hóa Chặng cuối (Last-mile Routing Algorithm):
    - Các đối thủ lớn (đặc biệt là J&T và SPX) đang áp dụng thuật toán phân chia động dựa trên Machine Learning. Hệ thống tự động phân chia khu vực phụ trách (Dynamic Geofencing) của shipper theo thời gian thực dựa trên mật độ đơn hàng và thời tiết, thay vì chia cố định theo phường/xã. Điều này giúp tăng hiệu suất giao hàng từ 15% lên 22% (trung bình 85 đơn/shipper/ngày).
@@ -82,7 +82,7 @@ Sources:
 
   // Anthropic hoặc Google Flash hoặc OpenAI
   return `[${model} GENERAL SEARCH & COMPILATION - ${timestamp}]
-Tổng hợp thông tin thị trường trong nước liên quan đến "${goal}" và đối thủ "${competitors}".
+Tổng hợp thông tin thị trường trong nước liên quan đến "${scope}".
 
 1. Thực trạng mạng lưới và kho bãi:
    - SPX Express sở hữu hơn 1,200 bưu cục khắp Việt Nam, liên kết chặt chẽ với kho hàng tổng của Shopee tại Bắc Ninh, Củ Chi và Bình Dương. Diện tích kho bãi tổng cộng vượt 200,000 m2.
@@ -98,8 +98,8 @@ Sources:
 };
 
 // 2. SINH BÁO CÁO TỔNG HỢP MẪU CHẤT LƯỢNG CAO (MOCK STRATEGIC REPORT)
-const generateMockSynthesisReport = (query: { goal: string; competitors: string; metrics: string }, searchModels: string[], synthesisModel: string): { report: string; sources: any[] } => {
-  const { goal, competitors, metrics } = query;
+const generateMockSynthesisReport = (query: { scope: string; persona: string; action: string; rules: string; knowledge: string }, searchModels: string[], synthesisModel: string): { report: string; sources: any[] } => {
+  const { scope, persona, action } = query;
   
   const report = `# BÁO CÁO PHÂN TÍCH CHIẾN LƯỢC TOÀN DIỆN: TỐI ƯU CẠNH TRANH GHN
 **Được thực hiện bởi:** Hệ thống Trí tuệ Nhân tạo NexusAI  
@@ -111,7 +111,7 @@ const generateMockSynthesisReport = (query: { goal: string; competitors: string;
 
 ## 1. TÓM TẮT DÀNH CHO BAN GIÁM ĐỐC (EXECUTIVE SUMMARY)
 
-Báo cáo này tập trung phân tích sâu về chủ đề **"${goal}"** trong bối cảnh cạnh tranh khốc liệt với các đối thủ **"${competitors}"**, đặc biệt xoáy sâu vào các chỉ số vận hành then chốt: **"${metrics}"**.
+Báo cáo này tập trung phân tích sâu về: **"${scope}"**, nhằm giải quyết các hành động cốt lõi: **"${action}"**. Đây là báo cáo được thiết kế chuẩn mực dành cho đối tượng: **"${persona}"**.
 
 Thông qua việc điều phối các công cụ AI tìm kiếm song song thu thập thông tin từ thị trường Trung Quốc (Kimi), số liệu thị trường quốc tế/khu vực (Perplexity, DeepSeek) và dữ liệu nội địa, chúng tôi đã phác họa bức tranh toàn cảnh về chiến lược vận hành của đối thủ. Kết quả cho thấy các đối thủ đang đẩy mạnh **Tự động hóa chia chọn để giảm đơn giá cước** và **Áp dụng các thuật toán định tuyến chặng cuối động**. 
 
@@ -119,7 +119,7 @@ Thông qua việc điều phối các công cụ AI tìm kiếm song song thu th
 
 ---
 
-## 2. PHÂN TÍCH CHI TIẾT THEO CÁC KHÍA CẠNH QUAN TÂM ("${metrics}")
+## 2. PHÂN TÍCH CHI TIẾT THEO YÊU CẦU
 
 ### 2.1. Cấu trúc Giá cước & Chiến lược Chiết khấu (Pricing Strategy)
 Dữ liệu đối chiếu từ các nguồn tin cậy chỉ ra rằng đối thủ (đặc biệt là J&T Express và SPX Express) đang áp dụng chính sách định giá mang tính triệt hạ đối với phân khúc hàng nhẹ (<2kg):
@@ -261,12 +261,12 @@ Bắt buộc trả về cấu trúc JSON thuần túy (không bọc trong thẻ 
   ]
 }`;
 
-const userPrompt = `Đầu vào lập kế hoạch nghiên cứu chiến lược:
-- Bối cảnh (Context): "${query.context}"
-- Chủ đề/Mục tiêu: "${query.goal}"
-- Đối thủ cạnh tranh: "${query.competitors}"
-- Khía cạnh quan tâm: "${query.metrics}"
-- Ràng buộc: "${query.constraints || 'Không có'}"
+const userPrompt = `Đầu vào lập kế hoạch nghiên cứu chiến lược (Theo chuẩn SPARK):
+- S (Scope): "${query.scope}"
+- P (Persona): "${query.persona}"
+- A (Action): "${query.action}"
+- R (Rules): "${query.rules || 'Không có'}"
+- K (Knowledge): "${query.knowledge || 'Không có'}"
 
 Dưới đây là TOÀN BỘ kết quả thô thu thập được từ các chatbot do người dùng dán vào (Lưu ý: Có thể chứa nhiều URL được nhúng trong text):
 ${searchResultsFeed}
