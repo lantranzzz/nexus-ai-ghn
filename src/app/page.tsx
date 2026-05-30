@@ -9,6 +9,7 @@ import ResearchForm from '@/components/ResearchForm';
 import PromptReview from '@/components/PromptReview';
 import ManualInputForm from '@/components/ManualInputForm';
 import ReportView from '@/components/ReportView';
+import ReportsLibrary from '@/components/ReportsLibrary';
 import { getResearches, ResearchData, isSupabaseConfigured, supabase, getApiKeysFromCloud } from '@/lib/supabase';
 import Login from '@/components/Login';
 import { 
@@ -57,6 +58,9 @@ export default function Home() {
   // Xác thực
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
+
+  // Tab Điều hướng chính
+  const [activeTab, setActiveTab] = useState<'research' | 'library'>('research');
 
   // Khởi chạy: Tải lịch sử & kiểm tra DB
   const loadHistory = async () => {
@@ -326,17 +330,76 @@ export default function Home() {
     return <Login onLogin={() => setIsAuthenticated(true)} />;
   }
 
+  // Logout handler
+  const handleLogout = async () => {
+    localStorage.removeItem('nexusai_auth');
+    localStorage.removeItem('sb-ahtvxyzlkwp-auth-token'); // Clear possible leftover token
+    if (isSupabaseConfigured() && supabase) {
+      await supabase.auth.signOut();
+    }
+    setIsAuthenticated(false);
+  };
+
+  // View report handler
+  const handleViewReport = (data: ResearchData) => {
+    setScope(data.query.scope);
+    setPersona(data.query.persona);
+    setAction(data.query.action);
+    setRules(data.query.rules);
+    setKnowledge(data.query.knowledge);
+    setPrompts(data.research_prompts);
+    setSelectedSearchModels(data.search_models);
+    setSelectedSynthesisModel(data.synthesis_model);
+    setRawInputs(data.raw_inputs || {});
+    setReport(data.final_report);
+    setSources(data.sources);
+    setStep('result');
+    setActiveTab('research');
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
-      
-      <Sidebar onOpenSettings={() => setIsSettingsOpen(true)} />
-
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <TopNav />
-
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-10 space-y-10 pb-20">
+    <div className="flex h-screen overflow-hidden bg-white">
+      <Sidebar 
+        activeTab={activeTab}
+        onChangeTab={setActiveTab}
+        onOpenSettings={() => setIsSettingsOpen(true)} 
+        onLogout={handleLogout}
+      />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8F9FA]">
+        <TopNav onLogout={handleLogout} />
         
-        {(step === 'planning' || step === 'researching') && (
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scroll-smooth">
+          
+        {activeTab === 'library' ? (
+          <ReportsLibrary 
+            history={history} 
+            isLoading={isLoadingHistory} 
+            onViewReport={handleViewReport} 
+          />
+        ) : (
+          <>
+          {/* CÁC BƯỚC CỦA TAB NGHIÊN CỨU CHIẾN LƯỢC */}
+          
+          {/* STEP 1: CẤU HÌNH BAN ĐẦU */}
+          {step === 'form' && (
+            <ResearchForm
+              scope={scope}
+              setScope={setScope}
+              persona={persona}
+              setPersona={setPersona}
+              action={action}
+              setAction={setAction}
+              rules={rules}
+              setRules={setRules}
+              knowledge={knowledge}
+              setKnowledge={setKnowledge}
+              onSubmit={handleGeneratePlan}
+              isLoading={false}
+            />
+          )}
+
+          {/* STEP 2: LOADING (KẾT HỢP PLANNING & TỔNG HỢP NẾU SKIP) */}
+          {(step === 'planning' || step === 'researching') && (
           <div className="bg-white p-12 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
             <div className="relative">
               <div className="w-16 h-16 border-4 border-orange-100 border-t-[#F58220] rounded-full animate-spin-fast" />
@@ -507,6 +570,8 @@ export default function Home() {
             onReset={handleReset}
             onBackToInput={() => setStep('manual_input')}
           />
+        )}
+        </>
         )}
 
         </main>
