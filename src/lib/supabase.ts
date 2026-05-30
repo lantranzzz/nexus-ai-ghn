@@ -196,12 +196,26 @@ export const getResearches = async (): Promise<{ success: boolean; data: Researc
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
 
+      // Nếu không có token thật (JWT), từ chối request — không bao giờ dùng anonKey để đọc
+      if (!token) {
+        // Thử lấy lại token bằng auth.getSession()
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          token = session?.access_token || null;
+        } catch (e) {}
+      }
+
+      if (!token) {
+        // Trả về rỗng an toàn, không để lộ dữ liệu người khác
+        return { success: true, data: [], isLocalFallback: false };
+      }
+
       try {
         const response = await fetch(`${supabaseUrl}/rest/v1/researches?user_id=eq.${userId}&order=created_at.desc`, {
           method: 'GET',
           headers: {
             'apikey': supabaseAnonKey,
-            'Authorization': `Bearer ${token || supabaseAnonKey}`
+            'Authorization': `Bearer ${token}`
           },
           signal: controller.signal
         });
