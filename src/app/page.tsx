@@ -380,24 +380,6 @@ export default function Home() {
           <>
           {/* CÁC BƯỚC CỦA TAB NGHIÊN CỨU CHIẾN LƯỢC */}
           
-          {/* STEP 1: CẤU HÌNH BAN ĐẦU */}
-          {step === 'form' && (
-            <ResearchForm
-              scope={scope}
-              setScope={setScope}
-              persona={persona}
-              setPersona={setPersona}
-              action={action}
-              setAction={setAction}
-              rules={rules}
-              setRules={setRules}
-              knowledge={knowledge}
-              setKnowledge={setKnowledge}
-              onSubmit={handleGeneratePlan}
-              isLoading={false}
-            />
-          )}
-
           {/* STEP 2: LOADING (KẾT HỢP PLANNING & TỔNG HỢP NẾU SKIP) */}
           {(step === 'planning' || step === 'researching') && (
           <div className="bg-white p-12 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
