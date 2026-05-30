@@ -76,7 +76,7 @@ export default function Home() {
           // Kiểm tra session hiện tại có timeout 10s
           const sessionPromise = supabase.auth.getSession();
           const authTimeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) => 
-            setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 10000)
+            setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 25000)
           );
           
           const { data: { session }, error } = await Promise.race([sessionPromise, authTimeoutPromise]) as { data: { session: any }, error: any };
