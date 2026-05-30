@@ -33,32 +33,28 @@ export default function ResearchForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isReadingFile, setIsReadingFile] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsReadingFile(true);
-    const reader = new FileReader();
     
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
+    try {
+      // Import dynamically to prevent SSR build issues with pdfjs-dist and mammoth
+      const { parseFileToText } = await import('@/lib/fileParser');
+      const content = await parseFileToText(file);
       if (content) {
         const fileHeader = `\n\n--- Dữ liệu từ file: ${file.name} ---\n`;
         setKnowledge((knowledge ? knowledge + fileHeader : fileHeader) + content);
       }
+    } catch (error: any) {
+      alert(error.message || 'Lỗi khi đọc file. Vui lòng thử lại.');
+    } finally {
       setIsReadingFile(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    };
-
-    reader.onerror = () => {
-      alert('Không thể đọc file. Vui lòng đảm bảo đây là file văn bản (.txt, .md, .csv)');
-      setIsReadingFile(false);
-    };
-
-    // Try reading as text
-    reader.readAsText(file);
+    }
   };
 
   const applyQuickTemplate = (templateType: 'j&t' | 'ninjavan' | 'tiktok') => {
@@ -199,7 +195,7 @@ export default function ResearchForm({
                 type="file" 
                 ref={fileInputRef} 
                 onChange={handleFileUpload} 
-                accept=".txt,.md,.csv,.json"
+                accept=".txt,.md,.csv,.json,.pdf,.docx,.xlsx,.pptx"
                 className="hidden" 
               />
               <button 
