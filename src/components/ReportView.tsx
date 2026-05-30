@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   FileText, Download, Save, ExternalLink, RefreshCw, 
-  CheckCircle, Database, AlertCircle, Copy, Check 
+  CheckCircle, Database, AlertCircle, Copy, Check, ArrowLeft
 } from 'lucide-react';
 import { saveResearch } from '@/lib/supabase';
 
@@ -26,6 +26,7 @@ interface ReportViewProps {
   rawInputs: Record<string, string>;
   isMocked: boolean;
   onReset: () => void;
+  onBackToInput: () => void;
 }
 
 // BỘ PARSER MARKDOWN THỦ CÔNG CỰC KỲ MẠNH MẼ VÀ AN TOÀN
@@ -268,7 +269,8 @@ export default function ReportView({
   prompts,
   rawInputs,
   isMocked,
-  onReset
+  onReset,
+  onBackToInput
 }: ReportViewProps) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -370,6 +372,15 @@ export default function ReportView({
           >
             <Save className="w-4 h-4" />
             {saveStatus === 'saving' ? 'Đang lưu...' : 'Lưu vào Database'}
+          </button>
+
+          {/* Nút Back về Manual Input */}
+          <button
+            onClick={onBackToInput}
+            className="text-xs px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg flex items-center gap-1.5 shadow-sm hover:shadow-md cursor-pointer transition-colors border border-gray-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Chỉnh sửa Output
           </button>
 
           {/* Nút Tạo lại từ đầu */}

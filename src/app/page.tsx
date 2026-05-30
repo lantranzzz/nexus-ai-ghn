@@ -505,6 +505,7 @@ export default function Home() {
             rawInputs={rawInputs}
             isMocked={isReportMocked}
             onReset={handleReset}
+            onBackToInput={() => setStep('manual_input')}
           />
         )}
 
