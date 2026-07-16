@@ -271,13 +271,13 @@ export default function Home() {
     setStep('researching');
     setLoadingMessage('Đang tự động kết nối tới các Search Model đã chọn...');
 
+    const searchModelNames = selectedSearchModels.map(m => m.split(' ')[0]);
     const progressMessages = [
-      'Bắt đầu gọi API song song tới các model Tìm Tin (Search)...',
-      'Đang truy tìm dữ liệu logistics toàn cầu (Perplexity)...',
-      'Đang khai thác dữ liệu chuỗi cung ứng thông minh...',
-      'Đang phân tích cấu trúc chi phí & lập luận toán học (DeepSeek)...',
-      'Đã thu thập dữ liệu thô. Đang chuyển giao cho Model Tổng Biên Tập...',
-      'Tổng Biên Tập đang dịch các thuật ngữ chuyên ngành...',
+      'Bắt đầu thiết lập truy vấn chiến lược...',
+      `Đang điều phối tìm kiếm tới: ${searchModelNames.join(', ')}...`,
+      ...searchModelNames.map(model => `Đang trích xuất dữ liệu chuyên sâu từ ${model}...`),
+      'Đã thu thập xong dữ liệu thô. Đang chuyển giao cho Tổng Biên Tập...',
+      'Tổng Biên Tập đang dịch và chuẩn hóa thuật ngữ chuyên ngành...',
       'Tổng Biên Tập đang đối chiếu fact-check mâu thuẫn dữ liệu...',
       'Đang biên soạn báo cáo phân tích chiến lược cuối cùng...'
     ];
