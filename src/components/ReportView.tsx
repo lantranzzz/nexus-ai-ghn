@@ -10,6 +10,21 @@ interface Source {
   url: string;
 }
 
+// Chỉ cho phép http/https. Nguồn (sources) đến từ output AI (không tin cậy) nên
+// phải chặn các scheme nguy hiểm như javascript:/data: để tránh XSS khi bấm link.
+const sanitizeUrl = (url: string): string | null => {
+  if (!url || typeof url !== 'string') return null;
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.href;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 interface ReportViewProps {
   report: string;
   sources: Source[];
@@ -459,15 +474,10 @@ export default function ReportView({
           
           {sources && sources.length > 0 ? (
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pl-0 list-none">
-              {sources.map((src, i) => (
-                <li key={i} className="pl-0">
-                  <a
-                    href={src.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 rounded-xl flex items-start justify-between gap-3 group transition-all h-full"
-                    style={{ textDecoration: 'none' }}
-                  >
+              {sources.map((src, i) => {
+                const safeHref = sanitizeUrl(src.url);
+                const innerContent = (
+                  <>
                     <div className="space-y-1">
                       <p className="text-xs font-bold text-gray-800 group-hover:text-[#F58220] transition-colors line-clamp-1">
                         {src.title}
@@ -477,9 +487,32 @@ export default function ReportView({
                       </p>
                     </div>
                     <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#F58220] transition-colors shrink-0 mt-0.5" />
-                  </a>
-                </li>
-              ))}
+                  </>
+                );
+                return (
+                  <li key={i} className="pl-0">
+                    {safeHref ? (
+                      <a
+                        href={safeHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 rounded-xl flex items-start justify-between gap-3 group transition-all h-full"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        {innerContent}
+                      </a>
+                    ) : (
+                      // URL không hợp lệ / scheme không an toàn: hiển thị nhưng không cho bấm.
+                      <div
+                        className="p-3 bg-gray-50 border border-gray-100 rounded-xl flex items-start justify-between gap-3 group h-full opacity-70"
+                        title="Nguồn không có URL hợp lệ (đã bị chặn vì lý do bảo mật)"
+                      >
+                        {innerContent}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl flex items-start gap-3">

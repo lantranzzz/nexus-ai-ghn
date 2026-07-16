@@ -3,8 +3,11 @@ import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
 
-// Configure PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Configure PDF.js worker — self-host (same-origin) thay vì tải từ CDN ngoài để
+// tránh rủi ro supply-chain và tuân thủ CSP.
+// LƯU Ý: File public/pdf.worker.min.mjs được copy từ node_modules/pdfjs-dist/build/.
+// Khi nâng cấp pdfjs-dist, phải copy lại file này để khớp phiên bản.
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 async function extractPdfText(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();

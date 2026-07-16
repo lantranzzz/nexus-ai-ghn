@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callAIProvider } from '@/lib/ai';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 // Định nghĩa kiểu dữ liệu request body
 interface PlanRequest {
@@ -45,6 +46,15 @@ BẮT BUỘC: Hãy nhúng thẳng các đường link nguồn (URL) vào trong v
 };
 
 export async function POST(req: Request) {
+  // Rate limit: endpoint này kích hoạt outbound request tới nhà cung cấp AI.
+  const rl = checkRateLimit(`plan:${getClientIp(req)}`, 15, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } },
+    );
+  }
+
   try {
     const body: PlanRequest = await req.json();
     const { query, synthesisModel, searchModels, apiKeys } = body;
@@ -152,13 +162,13 @@ Lưu ý đặc biệt:
     } catch (apiError: any) {
       console.error('Lỗi khi gọi API Tổng Biên Tập:', apiError);
       return NextResponse.json(
-        { error: `Lỗi kết nối API Tổng Biên Tập: ${apiError.message}. Vui lòng kiểm tra lại API Key.` }, 
-        { status: 500 }
+        { error: 'Không thể kết nối tới Model Tổng Biên Tập. Vui lòng kiểm tra lại API Key và Model đã chọn.' },
+        { status: 502 }
       );
     }
 
   } catch (err: any) {
     console.error('Lỗi máy chủ /api/orchestrate/plan:', err);
-    return NextResponse.json({ error: err.message || 'Lỗi xử lý nội bộ' }, { status: 500 });
+    return NextResponse.json({ error: 'Lỗi xử lý nội bộ. Vui lòng thử lại.' }, { status: 500 });
   }
 }

@@ -54,12 +54,24 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
         // bỏ qua
       }
 
-      // Thử dùng auth.getUser() nếu localStorage không có
-      if (!userId) {
+      // Thử dùng getSession()/getUser() nếu localStorage không có (supabase-js tự refresh token)
+      if (!token || !userId) {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
-          userId = user?.id || null;
+          const { data: { session } } = await supabase.auth.getSession();
+          token = token || session?.access_token || null;
+          userId = userId || session?.user?.id || null;
         } catch (e) {}
+      }
+
+      // Chặn tuyệt đối — chỉ ghi khi có JWT thật của người dùng.
+      // KHÔNG dùng anon key làm token dự phòng: user_id lấy từ client, nếu ghi
+      // bằng anon key sẽ có nguy cơ tạo bản ghi mạo danh user khác (bypass RLS ownership).
+      if (!token || !userId) {
+        return {
+          success: false,
+          error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại để lưu báo cáo.',
+          isLocalFallback: false,
+        };
       }
 
       // Sanitize data: đảm bảo sources là mảng JSON sạch
@@ -79,7 +91,7 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
           headers: {
             'Content-Type': 'application/json',
             'apikey': supabaseAnonKey,
-            'Authorization': `Bearer ${token || supabaseAnonKey}`,
+            'Authorization': `Bearer ${token}`,
             'Prefer': 'return=representation'
           },
           signal: controller.signal,
@@ -99,34 +111,9 @@ export const saveResearch = async (data: Omit<ResearchData, 'id' | 'created_at'>
 
         if (!response.ok) {
           const errText = await response.text();
-          // Nếu lỗi 401/403, thử lại với anon key
-          if ((response.status === 401 || response.status === 403) && token) {
-            console.warn('Token hết hạn, thử lại với anon key...');
-            const retryResponse = await fetch(`${supabaseUrl}/rest/v1/researches`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'apikey': supabaseAnonKey,
-                'Authorization': `Bearer ${supabaseAnonKey}`,
-                'Prefer': 'return=representation'
-              },
-              body: JSON.stringify({
-                query: data.query,
-                research_prompts: data.research_prompts,
-                search_models: data.search_models,
-                synthesis_model: data.synthesis_model,
-                raw_inputs: data.raw_inputs || null,
-                final_report: data.final_report,
-                sources: sanitizedSources,
-                user_id: userId
-              })
-            });
-            if (!retryResponse.ok) {
-              const retryErr = await retryResponse.text();
-              throw new Error(`HTTP ${retryResponse.status}: ${retryErr}`);
-            }
-            const retryData = await retryResponse.json();
-            return { success: true, data: retryData[0], isLocalFallback: false };
+          if (response.status === 401 || response.status === 403) {
+            // Không retry bằng anon key — phiên đã hết hạn thì yêu cầu đăng nhập lại.
+            throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để lưu báo cáo.');
           }
           throw new Error(`HTTP ${response.status}: ${errText || 'Lỗi không xác định từ server'}`);
         }

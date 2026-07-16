@@ -31,22 +31,17 @@ export default function Login({ onLogin }: LoginProps) {
       });
 
       if (signInError) {
-        setError('Đăng nhập thất bại: ' + signInError.message);
+        // Không lộ chi tiết lỗi từ backend auth; dùng thông báo chung chung.
+        setError('Email hoặc mật khẩu không chính xác.');
         setIsLoading(false);
       } else {
         onLogin();
       }
     } else {
-      // Fallback
-      setTimeout(() => {
-        if (username === 'admin' && password === 'admin') {
-          localStorage.setItem('nexusai_auth', 'true');
-          onLogin();
-        } else {
-          setError('Tên đăng nhập hoặc mật khẩu không chính xác (Thử admin/admin)');
-          setIsLoading(false);
-        }
-      }, 800);
+      // Không có tài khoản demo/backdoor. Khi thiếu cấu hình Supabase, hệ thống
+      // không có backend xác thực nên không cho đăng nhập.
+      setError('Hệ thống chưa được cấu hình xác thực (Supabase). Vui lòng liên hệ quản trị viên.');
+      setIsLoading(false);
     }
   };
 

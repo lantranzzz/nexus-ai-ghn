@@ -123,7 +123,7 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
             <div className="flex gap-2">
               <Info className="w-5 h-5 text-[#F58220] shrink-0" />
               <p className="text-xs text-gray-600 leading-relaxed">
-                <strong>Bảo mật 100%:</strong> Mã API Keys của bạn được lưu trữ <strong>trực tiếp trong trình duyệt (LocalStorage)</strong> và chỉ được gửi trực tiếp đến các nhà cung cấp AI khi bạn thực hiện yêu cầu nghiên cứu. Chúng tôi không bao giờ lưu trữ các mã này trên máy chủ.
+                <strong>Nơi lưu trữ API Keys:</strong> Key được lưu trong <strong>trình duyệt (LocalStorage)</strong>, và nếu bạn đã đăng nhập sẽ được đồng bộ vào hồ sơ tài khoản Supabase của bạn để dùng trên nhiều thiết bị. Khi chạy nghiên cứu, key được gửi qua máy chủ của ứng dụng rồi chuyển tiếp đến nhà cung cấp AI (không lưu lại trong log hay cơ sở dữ liệu báo cáo). Chỉ nhập API Key trên thiết bị bạn tin tưởng.
               </p>
             </div>
           </div>

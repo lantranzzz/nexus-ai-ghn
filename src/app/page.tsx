@@ -120,17 +120,13 @@ export default function Home() {
 
           return () => subscription.unsubscribe();
         } else {
-          // Kiểm tra trạng thái đăng nhập Local
-          const authStatus = localStorage.getItem('nexusai_auth');
-          if (authStatus === 'true') {
-            setIsAuthenticated(true);
-          }
+          // Không cấu hình Supabase -> không có backend xác thực -> chưa đăng nhập.
+          setIsAuthenticated(false);
         }
       } catch (err) {
         console.error('Lỗi khi kiểm tra Auth:', err);
-        // Fallback local auth if supabase fails
-        const authStatus = localStorage.getItem('nexusai_auth');
-        if (authStatus === 'true') setIsAuthenticated(true);
+        // Fail closed: lỗi xác thực thì coi như chưa đăng nhập, không dựa vào cờ localStorage.
+        setIsAuthenticated(false);
       } finally {
         setIsCheckingAuth(false);
       }

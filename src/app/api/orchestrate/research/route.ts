@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { callAIProvider } from '@/lib/ai';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 interface ResearchRequest {
   query: {
@@ -177,6 +178,15 @@ Dựa trên các phân tích chuyên sâu ở trên, chúng tôi đề xuất 3 
 };
 
 export async function POST(req: Request) {
+  // Rate limit: endpoint này kích hoạt nhiều outbound request tới các nhà cung cấp AI (tốn kém).
+  const rl = checkRateLimit(`research:${getClientIp(req)}`, 10, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfterSeconds) } },
+    );
+  }
+
   try {
     const body: ResearchRequest = await req.json();
     const { query, synthesisModel, searchModels, rawInputs, apiKeys, isDeepResearch } = body;
@@ -313,13 +323,13 @@ Yêu cầu biên soạn từ Strategy Manager:
     } catch (synthError: any) {
       console.error('Lỗi trong quá trình Tổng hợp báo cáo:', synthError);
       return NextResponse.json(
-        { error: `Lỗi kết nối AI Tổng Biên Tập: ${synthError.message}. Vui lòng kiểm tra lại API Key hoặc đổi Model.` }, 
-        { status: 500 }
+        { error: 'Không thể kết nối tới AI Tổng Biên Tập. Vui lòng kiểm tra lại API Key hoặc đổi Model.' },
+        { status: 502 }
       );
     }
 
   } catch (err: any) {
     console.error('Lỗi máy chủ /api/orchestrate/research:', err);
-    return NextResponse.json({ error: err.message || 'Lỗi xử lý nội bộ' }, { status: 500 });
+    return NextResponse.json({ error: 'Lỗi xử lý nội bộ. Vui lòng thử lại.' }, { status: 500 });
   }
 }
