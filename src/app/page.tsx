@@ -90,25 +90,44 @@ export default function Home() {
           // Kiểm tra session hiện tại, có timeout để tránh treo màn hình loading vô thời hạn
           // nếu getSession() bị kẹt (đã ghi nhận là có thể xảy ra với supabase-js trong một số
           // trường hợp trình duyệt/mạng cụ thể).
+          // Optimistic UI: Check local storage first to skip loading screen
+          const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          let hasLocalSession = false;
+          try {
+            if (storageKey) {
+              const raw = localStorage.getItem(storageKey);
+              if (raw && JSON.parse(raw).access_token) {
+                hasLocalSession = true;
+                setIsAuthenticated(true);
+                setIsCheckingAuth(false);
+                // Background fetch API keys
+                getApiKeysFromCloud().then(cloudKeys => {
+                  if (cloudKeys) localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+                }).catch(() => {});
+              }
+            }
+          } catch (e) {}
+
           const sessionPromise = supabase.auth.getSession();
           const authTimeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) =>
             setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 3000)
           );
           
           const { data: { session }, error } = await Promise.race([sessionPromise, authTimeoutPromise]) as { data: { session: any }, error: any };
-          if (error) throw error;
+          if (error && !hasLocalSession) throw error;
           
           if (session) {
-            setIsAuthenticated(true);
-            // Tải API Keys từ Cloud về mà không chặn màn hình loading
-            getApiKeysFromCloud().then(cloudKeys => {
-              if (cloudKeys) {
-                localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
-              }
-            }).catch(e => {
-              console.error('Không tải được API Keys:', e);
-            });
-          } else {
+            if (!hasLocalSession) {
+              setIsAuthenticated(true);
+              getApiKeysFromCloud().then(cloudKeys => {
+                if (cloudKeys) {
+                  localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
+                }
+              }).catch(e => {
+                console.error('Không tải được API Keys:', e);
+              });
+            }
+          } else if (!hasLocalSession) {
             setIsAuthenticated(false);
           }
 
@@ -359,17 +378,22 @@ export default function Home() {
   }
 
   // Logout handler
-  const handleLogout = async () => {
+  const handleLogout = () => {
+    setIsAuthenticated(false);
     localStorage.removeItem('nexusai_auth');
     localStorage.removeItem('sb-ahtvxyzlkwp-auth-token'); // Clear possible leftover token
-    try {
-      if (isSupabaseConfigured() && supabase) {
-        await supabase.auth.signOut();
+    
+    // Clear all sb-* tokens aggressively
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        localStorage.removeItem(key);
       }
-    } catch (error) {
-      console.error('Lỗi khi đăng xuất Supabase:', error);
-    } finally {
-      setIsAuthenticated(false);
+    });
+
+    if (isSupabaseConfigured() && supabase) {
+      supabase.auth.signOut().catch(error => {
+        console.error('Lỗi khi đăng xuất Supabase:', error);
+      });
     }
   };
 
