@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { callAIProvider } from '@/lib/ai';
+import { callAIProvider, resolveProviderForModel } from '@/lib/ai';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 // Định nghĩa kiểu dữ liệu request body
@@ -67,26 +67,10 @@ export async function POST(req: Request) {
     }
 
     // Xác định nhà cung cấp và API key cho Synthesis Model
-    let provider = '';
-    let apiKeyName = '';
-    let modelName = '';
-
-    const modelMatch = synthesisModel.match(/\(([^)]+)\)/);
-    const rawModelName = modelMatch ? modelMatch[1] : synthesisModel;
-
-    if (synthesisModel.toLowerCase().includes('claude')) {
-      provider = 'anthropic';
-      apiKeyName = 'anthropic';
-      modelName = rawModelName;
-    } else if (synthesisModel.toLowerCase().includes('openai') || synthesisModel.toLowerCase().includes('gpt')) {
-      provider = 'openai';
-      apiKeyName = 'openai';
-      modelName = rawModelName;
-    } else if (synthesisModel.toLowerCase().includes('gemini')) {
-      provider = 'google';
-      apiKeyName = 'google';
-      modelName = rawModelName;
-    }
+    const resolution = resolveProviderForModel(synthesisModel);
+    const provider = resolution?.provider || '';
+    const apiKeyName = resolution?.apiKeyName || '';
+    const modelName = resolution?.modelId || '';
 
     const synthesisApiKey = apiKeys[apiKeyName] || '';
 

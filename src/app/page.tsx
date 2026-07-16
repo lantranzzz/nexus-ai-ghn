@@ -7,7 +7,6 @@ import SettingsSidebar, { ApiKeys } from '@/components/SettingsSidebar';
 import ModelSelection from '@/components/ModelSelection';
 import ResearchForm from '@/components/ResearchForm';
 import PromptReview from '@/components/PromptReview';
-import ManualInputForm from '@/components/ManualInputForm';
 import ReportView from '@/components/ReportView';
 import ReportsLibrary from '@/components/ReportsLibrary';
 import { getResearches, ResearchData, isSupabaseConfigured, supabase, getApiKeysFromCloud } from '@/lib/supabase';
@@ -41,16 +40,22 @@ export default function Home() {
   );
 
   // Tiến trình Orchestration
-  // 'form' | 'planning' | 'prompts' | 'manual_input' | 'researching' | 'result'
-  const [step, setStep] = useState<'form' | 'planning' | 'prompts' | 'manual_input' | 'researching' | 'result'>('form');
+  // 'form' | 'planning' | 'prompts' | 'researching' | 'result'
+  // Lưu ý: không còn bước 'manual_input' — sau khi duyệt prompt, hệ thống tự động gọi
+  // API tới từng Search Model bằng API Key người dùng đã cấu hình, không cần copy-paste tay.
+  const [step, setStep] = useState<'form' | 'planning' | 'prompts' | 'researching' | 'result'>('form');
   const [loadingMessage, setLoadingMessage] = useState<string>('');
-  
+
   const [prompts, setPrompts] = useState<Record<string, string>>({});
+  // Kết quả thô tự động lấy được từ từng Search Model (điền bởi server sau bước research).
   const [rawInputs, setRawInputs] = useState<Record<string, string>>({});
   const [planningSummary, setPlanningSummary] = useState<string>('');
   const [report, setReport] = useState<string>('');
   const [sources, setSources] = useState<{ title: string; url: string }[]>([]);
   const [isReportMocked, setIsReportMocked] = useState<boolean>(false);
+  // Các Search Model bị bỏ qua khi tự động research (thiếu API Key / gọi lỗi) -> dùng dữ liệu mẫu tham khảo.
+  const [skippedModels, setSkippedModels] = useState<{ model: string; reason: string }[]>([]);
+  const [researchWarning, setResearchWarning] = useState<string>('');
 
   // Lịch sử nghiên cứu đã lưu
   const [history, setHistory] = useState<ResearchData[]>([]);
@@ -144,23 +149,28 @@ export default function Home() {
   }, [isAuthenticated]);
 
   // Lấy các API Keys từ LocalStorage khi cần gọi API
+  const EMPTY_API_KEYS: ApiKeys = {
+    openai: '',
+    anthropic: '',
+    google: '',
+    perplexity: '',
+    deepseek: '',
+    moonshot: '',
+    xai: '',
+    qwen: '',
+  };
+
   const getStoredApiKeys = (): ApiKeys => {
     const rawKeys = localStorage.getItem('nexusai_api_keys');
     if (rawKeys) {
       try {
-        return JSON.parse(rawKeys);
+        // Merge với default để không lỗi khi dữ liệu cũ thiếu field mới (xai/qwen).
+        return { ...EMPTY_API_KEYS, ...JSON.parse(rawKeys) };
       } catch (e) {
         console.error('Lỗi parse API keys:', e);
       }
     }
-    return {
-      openai: '',
-      anthropic: '',
-      google: '',
-      perplexity: '',
-      deepseek: '',
-      moonshot: '',
-    };
+    return EMPTY_API_KEYS;
   };
 
   // GIAI ĐOẠN 1: LẬP KẾ HOẠCH & SINH PROMPTS
@@ -236,7 +246,7 @@ export default function Home() {
     }
 
     setStep('researching');
-    setLoadingMessage('Bắt đầu chuyển giao dữ liệu thô cho Model Tổng Biên Tập...');
+    setLoadingMessage('Đang tự động kết nối tới các Search Model đã chọn...');
 
     const progressMessages = [
       'Bắt đầu gọi API song song tới các model Tìm Tin (Search)...',
@@ -262,10 +272,10 @@ export default function Home() {
         query: { scope, persona, action, rules, knowledge },
         synthesisModel: selectedSynthesisModel,
         searchModels: selectedSearchModels,
-        rawInputs: rawInputs,
+        prompts: prompts,
         apiKeys: activeApiKeys
       };
-      
+
       const response = await fetch('/api/orchestrate/research', {
         method: 'POST',
         headers: {
@@ -284,9 +294,12 @@ export default function Home() {
       const data = await response.json();
       setReport(data.report || '');
       setSources(data.sources || []);
+      setRawInputs(data.rawInputs || {});
+      setSkippedModels(data.skippedModels || []);
+      setResearchWarning(data.warning || '');
       setIsReportMocked(!!data.isMocked);
       setStep('result');
-      
+
       loadHistory();
     } catch (err: any) {
       clearInterval(interval);
@@ -308,7 +321,10 @@ export default function Home() {
     setSelectedSynthesisModel(item.synthesis_model);
     setReport(item.final_report);
     setSources(item.sources);
-    setIsReportMocked(false); 
+    setRawInputs(item.raw_inputs || {});
+    setSkippedModels([]);
+    setResearchWarning('');
+    setIsReportMocked(false);
     setStep('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -320,8 +336,11 @@ export default function Home() {
     setRules('');
     setKnowledge('');
     setPrompts({});
+    setRawInputs({});
     setReport('');
     setSources([]);
+    setSkippedModels([]);
+    setResearchWarning('');
     setStep('form');
   };
 
@@ -358,6 +377,8 @@ export default function Home() {
     setRawInputs(data.raw_inputs || {});
     setReport(data.final_report);
     setSources(data.sources);
+    setSkippedModels([]);
+    setResearchWarning('');
     setStep('result');
     setActiveTab('research');
   };
@@ -518,34 +539,16 @@ export default function Home() {
           </div>
         )}
 
-        {/* STEP 3: DUYỆT PROMPTS */}
+        {/* STEP 3: DUYỆT PROMPTS -> XÁC NHẬN LÀ HỆ THỐNG TỰ ĐỘNG CHẠY NGHIÊN CỨU LUÔN */}
         {step === 'prompts' && (
           <PromptReview
             prompts={prompts}
             setPrompts={setPrompts}
             planningSummary={planningSummary}
             onBack={() => setStep('form')}
-            onConfirm={() => {
-              // Khởi tạo state rỗng cho rawInputs dựa trên các model đã chọn
-              const initialRawInputs: Record<string, string> = {};
-              selectedSearchModels.forEach(m => initialRawInputs[m] = '');
-              setRawInputs(initialRawInputs);
-              setStep('manual_input');
-            }}
+            onConfirm={handleExecuteResearch}
             isLoading={false}
             isMocked={isReportMocked}
-          />
-        )}
-
-        {/* STEP 4: NHẬP DỮ LIỆU THÔ (MANUAL INPUT) */}
-        {step === 'manual_input' && (
-          <ManualInputForm
-            models={selectedSearchModels}
-            rawInputs={rawInputs}
-            setRawInputs={setRawInputs}
-            onBack={() => setStep('prompts')}
-            onSubmit={handleExecuteResearch}
-            isLoading={false}
           />
         )}
 
@@ -560,8 +563,10 @@ export default function Home() {
             prompts={prompts}
             rawInputs={rawInputs}
             isMocked={isReportMocked}
+            skippedModels={skippedModels}
+            researchWarning={researchWarning}
             onReset={handleReset}
-            onBackToInput={() => setStep('manual_input')}
+            onBackToInput={() => setStep('prompts')}
           />
         )}
         </>

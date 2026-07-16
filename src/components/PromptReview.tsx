@@ -134,14 +134,14 @@ export default function PromptReview({
       <div className="pt-4 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Eye className="w-4 h-4 text-gray-400" />
-          <span>Bạn hãy sao chép các prompt này và dán vào các bot AI (ChatGPT, Perplexity...)</span>
+          <span>Hệ thống sẽ tự động gọi API từng tool bằng Key bạn đã cấu hình để research, không cần copy-paste tay</span>
         </div>
 
         <button
           onClick={onConfirm}
           disabled={isLoading || modelNames.length === 0}
           className={`px-8 py-3.5 rounded-xl font-bold flex items-center gap-2.5 shadow-md hover:shadow-lg transition-all text-xs md:text-sm cursor-pointer ${
-            isLoading 
+            isLoading
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
               : 'bg-[#F58220] hover:bg-[#E06B16] text-white animate-pulse-border'
           }`}
@@ -155,12 +155,12 @@ export default function PromptReview({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Đang chuyển sang Bước Nhập liệu...
+              Đang khởi chạy nghiên cứu tự động...
             </>
           ) : (
             <>
               <Play className="w-4.5 h-4.5 fill-current" />
-              TIẾP TỤC: NHẬP KẾT QUẢ TỪ CHATBOT
+              TIẾP TỤC: TỰ ĐỘNG NGHIÊN CỨU (AUTO RESEARCH)
             </>
           )}
         </button>

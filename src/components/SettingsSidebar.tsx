@@ -14,17 +14,23 @@ export interface ApiKeys {
   perplexity: string;
   deepseek: string;
   moonshot: string;
+  xai: string;
+  qwen: string;
 }
 
+const EMPTY_API_KEYS: ApiKeys = {
+  openai: '',
+  anthropic: '',
+  google: '',
+  perplexity: '',
+  deepseek: '',
+  moonshot: '',
+  xai: '',
+  qwen: '',
+};
+
 export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProps) {
-  const [keys, setKeys] = useState<ApiKeys>({
-    openai: '',
-    anthropic: '',
-    google: '',
-    perplexity: '',
-    deepseek: '',
-    moonshot: '',
-  });
+  const [keys, setKeys] = useState<ApiKeys>(EMPTY_API_KEYS);
 
   const [savedStatus, setSavedStatus] = useState<boolean>(false);
   const [supabaseConnected, setSupabaseConnected] = useState<boolean>(false);
@@ -34,7 +40,8 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
     const storedKeys = localStorage.getItem('nexusai_api_keys');
     if (storedKeys) {
       try {
-        setKeys(JSON.parse(storedKeys));
+        // Merge với default để không lỗi khi dữ liệu cũ (trước khi thêm xai/qwen) thiếu field mới.
+        setKeys({ ...EMPTY_API_KEYS, ...JSON.parse(storedKeys) });
       } catch (e) {
         console.error('Lỗi parse API Keys từ localStorage:', e);
       }
@@ -64,18 +71,10 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
 
   const clearKeys = async () => {
     if (confirm('Bạn có chắc chắn muốn xóa tất cả API Keys không?')) {
-      const emptyKeys = {
-        openai: '',
-        anthropic: '',
-        google: '',
-        perplexity: '',
-        deepseek: '',
-        moonshot: '',
-      };
-      setKeys(emptyKeys);
+      setKeys(EMPTY_API_KEYS);
       localStorage.removeItem('nexusai_api_keys');
       if (supabaseConnected) {
-        await syncApiKeysToCloud(emptyKeys as any);
+        await syncApiKeysToCloud(EMPTY_API_KEYS as any);
       }
     }
   };
@@ -199,6 +198,30 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
                 placeholder="sk-..."
                 value={keys.moonshot}
                 onChange={(e) => handleInputChange('moonshot', e.target.value)}
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] outline-none transition-colors"
+              />
+            </div>
+
+            {/* xAI (Grok) */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">xAI API Key (Grok)</label>
+              <input
+                type="password"
+                placeholder="xai-..."
+                value={keys.xai}
+                onChange={(e) => handleInputChange('xai', e.target.value)}
+                className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] outline-none transition-colors"
+              />
+            </div>
+
+            {/* Qwen (Alibaba Cloud) */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Qwen API Key (Alibaba Cloud DashScope)</label>
+              <input
+                type="password"
+                placeholder="sk-..."
+                value={keys.qwen}
+                onChange={(e) => handleInputChange('qwen', e.target.value)}
                 className="w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] outline-none transition-colors"
               />
             </div>

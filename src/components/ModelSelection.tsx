@@ -49,8 +49,8 @@ export default function ModelSelection({
         <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
           <Search className="w-5 h-5 text-[#F58220]" />
           <div>
-            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 1: Chọn Tool Tìm Tin (Manual Copy-Paste)</h3>
-            <p className="text-xs text-gray-500">Model Tổng biên tập sẽ tạo prompt tối ưu cho từng tool này để bạn copy qua</p>
+            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 1: Chọn Tool Tìm Tin (Tự Động Qua API)</h3>
+            <p className="text-xs text-gray-500">Model Tổng biên tập sẽ tạo prompt tối ưu, sau đó hệ thống tự động gọi API từng tool bằng Key bạn đã cấu hình trong Cài đặt</p>
           </div>
         </div>
 

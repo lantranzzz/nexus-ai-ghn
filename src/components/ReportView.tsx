@@ -40,6 +40,9 @@ interface ReportViewProps {
   prompts: Record<string, string>;
   rawInputs: Record<string, string>;
   isMocked: boolean;
+  // Các Search Model bị bỏ qua khi tự động research (thiếu API Key / gọi lỗi) -> đã dùng dữ liệu mẫu tham khảo thay thế.
+  skippedModels?: { model: string; reason: string }[];
+  researchWarning?: string;
   onReset: () => void;
   onBackToInput: () => void;
 }
@@ -284,6 +287,8 @@ export default function ReportView({
   prompts,
   rawInputs,
   isMocked,
+  skippedModels = [],
+  researchWarning = '',
   onReset,
   onBackToInput
 }: ReportViewProps) {
@@ -389,13 +394,13 @@ export default function ReportView({
             {saveStatus === 'saving' ? 'Đang lưu...' : 'Lưu vào Database'}
           </button>
 
-          {/* Nút Back về Manual Input */}
+          {/* Nút quay lại chỉnh Prompt & chạy lại nghiên cứu tự động */}
           <button
             onClick={onBackToInput}
             className="text-xs px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg flex items-center gap-1.5 shadow-sm hover:shadow-md cursor-pointer transition-colors border border-gray-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            Chỉnh sửa Output
+            Chỉnh sửa Prompt & Chạy lại
           </button>
 
           {/* Nút Tạo lại từ đầu */}
@@ -443,6 +448,31 @@ export default function ReportView({
             <p className="font-bold">Không thể lưu dữ liệu!</p>
             <p className="mt-0.5 opacity-90">Chi tiết lỗi: {errorMessage}</p>
           </div>
+        </div>
+      )}
+
+      {/* Cảnh báo các Search Model bị bỏ qua khi tự động research (thiếu API Key / gọi lỗi) */}
+      {!isMocked && skippedModels.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-xs leading-relaxed space-y-1.5">
+            <p className="font-bold uppercase">Một số Search Model dùng dữ liệu mẫu tham khảo</p>
+            <p className="opacity-90">
+              Hệ thống không gọi API thật được cho các model dưới đây, nên đã dùng dữ liệu mẫu tham khảo thay thế. Hãy thận trọng khi trích dẫn các phần liên quan trong báo cáo, hoặc bổ sung API Key rồi chạy lại.
+            </p>
+            <ul className="list-disc pl-4 space-y-0.5">
+              {skippedModels.map((s, i) => (
+                <li key={i}><strong>{s.model}:</strong> {s.reason}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {researchWarning && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-xs leading-relaxed">{researchWarning}</div>
         </div>
       )}
 

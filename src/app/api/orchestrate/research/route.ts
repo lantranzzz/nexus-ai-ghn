@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { callAIProvider } from '@/lib/ai';
+import { callAIProvider, resolveProviderForModel } from '@/lib/ai';
 import { checkRateLimit, getClientIp } from '@/lib/rateLimit';
 
 interface ResearchRequest {
@@ -12,12 +12,13 @@ interface ResearchRequest {
   };
   synthesisModel: string;
   searchModels: string[];
-  rawInputs: Record<string, string>;
+  // Prompt riêng cho từng Search Model, sinh ra ở Giai đoạn 1 (Planning) và có thể đã được người dùng chỉnh sửa.
+  prompts: Record<string, string>;
   apiKeys: Record<string, string>;
-  isDeepResearch?: boolean;
 }
 
-// 1. SINH KẾT QUẢ TÌM KIẾM MẪU (MOCK SEARCH RESULTS)
+// 1. SINH KẾT QUẢ TÌM KIẾM MẪU (dùng làm dữ liệu tham khảo khi 1 Search Model cụ thể
+// thiếu API Key hoặc gọi API thất bại, để pipeline tự động vẫn tiếp tục chạy được)
 const getMockSearchResult = (model: string, query: { scope: string; action: string; rules: string }): string => {
   const { scope, action, rules } = query;
   const timestamp = new Date().toLocaleDateString('vi-VN');
@@ -189,9 +190,9 @@ export async function POST(req: Request) {
 
   try {
     const body: ResearchRequest = await req.json();
-    const { query, synthesisModel, searchModels, rawInputs, apiKeys, isDeepResearch } = body;
+    const { query, synthesisModel, searchModels, prompts, apiKeys } = body;
 
-    if (!query || !synthesisModel || !searchModels || !rawInputs) {
+    if (!query || !synthesisModel || !searchModels || searchModels.length === 0 || !prompts) {
       return NextResponse.json({ error: 'Thiếu thông tin yêu cầu nghiên cứu.' }, { status: 400 });
     }
 
@@ -207,44 +208,63 @@ export async function POST(req: Request) {
       return NextResponse.json({
         ...mockResult,
         isMocked: true,
+        rawInputs: {},
+        skippedModels: [],
         summary: `Nghiên cứu hoàn tất ở chế độ thử nghiệm thông minh.`
       });
     }
 
-    // LẤY DỮ LIỆU THÔ DO NGƯỜI DÙNG NHẬP (MANUAL INPUTS)
-    console.log('Tiếp nhận kết quả thô từ người dùng...');
-    
-    // Ghép nối nội dung kết quả thô
+    // TỰ ĐỘNG GỌI API TỚI TỪNG SEARCH MODEL ĐÃ CHỌN (chạy song song bằng API Key người dùng đã cấu hình)
+    console.log('Đang tự động gọi API tới các Search Model đã chọn...');
+
+    const searchResults = await Promise.all(searchModels.map(async (model) => {
+      const resolution = resolveProviderForModel(model);
+      const keyForModel = resolution ? (apiKeys[resolution.apiKeyName] || '') : '';
+      const promptForModel = prompts[model] || `Hãy nghiên cứu chuyên sâu về: ${query.scope}`;
+
+      if (!resolution || !keyForModel) {
+        // Chưa hỗ trợ gọi API tự động cho nhà cung cấp này, hoặc thiếu API Key
+        // -> dùng dữ liệu mẫu tham khảo để pipeline vẫn chạy được, đồng thời đánh dấu bị bỏ qua.
+        return {
+          model,
+          content: getMockSearchResult(model, query),
+          ok: false,
+          reason: !resolution ? 'Nhà cung cấp chưa được hỗ trợ gọi API tự động.' : 'Thiếu API Key.',
+        };
+      }
+
+      // Search Model không chọn version cụ thể -> truyền model rỗng để dùng mặc định của provider.
+      const response = await callAIProvider(resolution.provider, '', keyForModel, promptForModel);
+      if (response.error || !response.content) {
+        return {
+          model,
+          content: getMockSearchResult(model, query),
+          ok: false,
+          reason: response.error || 'Không nhận được phản hồi hợp lệ từ nhà cung cấp.',
+        };
+      }
+
+      return { model, content: response.content, ok: true, reason: '' };
+    }));
+
+    const rawInputs: Record<string, string> = {};
+    const skippedModels: { model: string; reason: string }[] = [];
     let searchResultsFeed = '';
-    searchModels.forEach((model, index) => {
-      const content = rawInputs[model] || 'Người dùng không nhập dữ liệu cho bot này.';
-      
-      searchResultsFeed += `### DỮ LIỆU THU THẬP TỪ CHATBOT: ${model}\n`;
-      searchResultsFeed += `${content}\n\n`;
+
+    searchResults.forEach((r) => {
+      rawInputs[r.model] = r.content;
+      if (!r.ok) skippedModels.push({ model: r.model, reason: r.reason });
+
+      searchResultsFeed += `### DỮ LIỆU THU THẬP TỪ CHATBOT: ${r.model}${r.ok ? '' : ' (DỮ LIỆU MẪU THAM KHẢO - ' + r.reason + ')'}\n`;
+      searchResultsFeed += `${r.content}\n\n`;
       searchResultsFeed += `---\n\n`;
     });
 
     // Xác định Synthesis Model Provider
-    let synthProvider = '';
-    let synthApiKeyName = '';
-    let synthModelKey = '';
-
-    const synthMatch = synthesisModel.match(/\(([^)]+)\)/);
-    const rawSynthModel = synthMatch ? synthMatch[1] : synthesisModel;
-
-    if (synthesisModel.toLowerCase().includes('claude')) {
-      synthProvider = 'anthropic';
-      synthApiKeyName = 'anthropic';
-      synthModelKey = rawSynthModel;
-    } else if (synthesisModel.toLowerCase().includes('openai') || synthesisModel.toLowerCase().includes('gpt')) {
-      synthProvider = 'openai';
-      synthApiKeyName = 'openai';
-      synthModelKey = rawSynthModel;
-    } else if (synthesisModel.toLowerCase().includes('gemini')) {
-      synthProvider = 'google';
-      synthApiKeyName = 'google';
-      synthModelKey = rawSynthModel;
-    }
+    const synthResolution = resolveProviderForModel(synthesisModel);
+    const synthProvider = synthResolution?.provider || '';
+    const synthApiKeyName = synthResolution?.apiKeyName || '';
+    const synthModelKey = synthResolution?.modelId || '';
 
     const synthKey = apiKeys[synthApiKeyName];
 
@@ -255,6 +275,8 @@ export async function POST(req: Request) {
       return NextResponse.json({
         ...mockResult,
         isMocked: true,
+        rawInputs,
+        skippedModels,
         warning: `Báo cáo được biên soạn ở chế độ lai (Một số API tìm tin đã chạy thật, nhưng biên soạn báo cáo bằng mô hình tối ưu nội bộ do thiếu API Key Tổng Biên Tập).`
       });
     }
@@ -278,7 +300,7 @@ const userPrompt = `Đầu vào lập kế hoạch nghiên cứu chiến lược
 - R (Rules): "${query.rules || 'Không có'}"
 - K (Knowledge): "${query.knowledge || 'Không có'}"
 
-Dưới đây là TOÀN BỘ kết quả thô thu thập được từ các chatbot do người dùng dán vào (Lưu ý: Có thể chứa nhiều URL được nhúng trong text):
+Dưới đây là TOÀN BỘ kết quả thô thu thập được từ các Search Model (Lưu ý: Có thể chứa nhiều URL được nhúng trong text; các mục được đánh dấu "DỮ LIỆU MẪU THAM KHẢO" là do model đó thiếu API Key hoặc gọi API thất bại, hãy thận trọng khi trích dẫn):
 ${searchResultsFeed}
 
 Yêu cầu biên soạn từ Strategy Manager:
@@ -307,6 +329,8 @@ Yêu cầu biên soạn từ Strategy Manager:
         const mockResult = generateMockSynthesisReport(query, searchModels, synthesisModel);
         return NextResponse.json({
           ...mockResult,
+          rawInputs,
+          skippedModels,
           warning: 'Không thể parse JSON báo cáo từ AI Tổng Biên Tập. Tự động chuyển đổi sang mẫu cấu trúc tiêu chuẩn.'
         });
       }
@@ -317,6 +341,8 @@ Yêu cầu biên soạn từ Strategy Manager:
       return NextResponse.json({
         report: parsedResponse.report || '',
         sources: finalSources,
+        rawInputs,
+        skippedModels,
         isMocked: false
       });
 
