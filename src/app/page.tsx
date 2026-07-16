@@ -1,20 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Sidebar from '@/components/Sidebar';
 import TopNav from '@/components/TopNav';
 import SettingsSidebar, { ApiKeys } from '@/components/SettingsSidebar';
 import ModelSelection from '@/components/ModelSelection';
 import ResearchForm from '@/components/ResearchForm';
-import PromptReview from '@/components/PromptReview';
-import ReportView from '@/components/ReportView';
-import ReportsLibrary from '@/components/ReportsLibrary';
 import { getResearches, ResearchData, isSupabaseConfigured, supabase, getApiKeysFromCloud } from '@/lib/supabase';
-import Login from '@/components/Login';
 import { 
   Sparkles, Clock, History, FileText, Database, 
   HelpCircle, ChevronRight, AlertTriangle, ShieldCheck 
 } from 'lucide-react';
+
+const Login = dynamic(() => import('@/components/Login'), { ssr: false });
+const PromptReview = dynamic(() => import('@/components/PromptReview'), { ssr: false });
+const ReportView = dynamic(() => import('@/components/ReportView'), { ssr: false });
+const ReportsLibrary = dynamic(() => import('@/components/ReportsLibrary'), { ssr: false });
+
 
 export default function Home() {
   // Trạng thái Sidebar Cấu hình
@@ -84,10 +87,12 @@ export default function Home() {
     const checkAuth = async () => {
       try {
         if (isSupabaseConfigured() && supabase) {
-          // Kiểm tra session hiện tại có timeout 10s
+          // Kiểm tra session hiện tại, có timeout để tránh treo màn hình loading vô thời hạn
+          // nếu getSession() bị kẹt (đã ghi nhận là có thể xảy ra với supabase-js trong một số
+          // trường hợp trình duyệt/mạng cụ thể).
           const sessionPromise = supabase.auth.getSession();
-          const authTimeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) => 
-            setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 25000)
+          const authTimeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) =>
+            setTimeout(() => reject(new Error('Yêu cầu xác thực Supabase quá hạn (Timeout).')), 3000)
           );
           
           const { data: { session }, error } = await Promise.race([sessionPromise, authTimeoutPromise]) as { data: { session: any }, error: any };
@@ -95,15 +100,14 @@ export default function Home() {
           
           if (session) {
             setIsAuthenticated(true);
-            // Tải API Keys từ Cloud về
-            try {
-              const cloudKeys = await getApiKeysFromCloud();
+            // Tải API Keys từ Cloud về mà không chặn màn hình loading
+            getApiKeysFromCloud().then(cloudKeys => {
               if (cloudKeys) {
                 localStorage.setItem('nexusai_api_keys', JSON.stringify(cloudKeys));
               }
-            } catch (e) {
+            }).catch(e => {
               console.error('Không tải được API Keys:', e);
-            }
+            });
           } else {
             setIsAuthenticated(false);
           }
@@ -358,10 +362,15 @@ export default function Home() {
   const handleLogout = async () => {
     localStorage.removeItem('nexusai_auth');
     localStorage.removeItem('sb-ahtvxyzlkwp-auth-token'); // Clear possible leftover token
-    if (isSupabaseConfigured() && supabase) {
-      await supabase.auth.signOut();
+    try {
+      if (isSupabaseConfigured() && supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('Lỗi khi đăng xuất Supabase:', error);
+    } finally {
+      setIsAuthenticated(false);
     }
-    setIsAuthenticated(false);
   };
 
   // View report handler
