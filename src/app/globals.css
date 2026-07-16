@@ -1,67 +1,125 @@
 /* Google Fonts loaded via <link> in layout.tsx for non-blocking rendering */
 @import "tailwindcss";
-/* NexusAI - Giao Hàng Nhanh (GHN) Custom Styling */
+/* NexusAI - Giao Hàng Nhanh (GHN) Custom Styling
+   Màu sắc & font theo đúng Brand Guideline chính thức của GHN:
+   - Cam #FF5200 + Xanh #006FAD + Trắng là bộ màu chủ đạo.
+   - Font chính: Montserrat (digital). Font phối tương phản: Exo 2. */
 
 @theme {
-  --color-primary: #F58220;
-  --color-primary-hover: #E06B16;
-  --color-primary-light: #FFF0E6;
-  --color-primary-light-hover: #FFE2CC;
-  --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-primary: #FF5200;
+  --color-primary-hover: #D94700;
+  --color-primary-light: #FFF0E9;
+  --color-primary-light-hover: #FFDECC;
+  --color-secondary: #006FAD;
+  --color-secondary-hover: #005A8C;
+  --color-secondary-light: #E9F4FB;
+  --color-secondary-light-hover: #D3E9F7;
+  --color-accent-amber: #F8B200;
+  --color-accent-cyan: #00B5F4;
+  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Exo 2', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 :root {
-  --primary: #F58220;
-  --primary-rgb: 245, 130, 32;
-  --primary-hover: #E06B16;
-  --primary-light: #FFF0E6;
-  --primary-light-hover: #FFE2CC;
-  --bg-main: #F3F4F6;
+  --primary: #FF5200;
+  --primary-rgb: 255, 82, 0;
+  --primary-hover: #D94700;
+  --primary-light: #FFF0E9;
+  --primary-light-hover: #FFDECC;
+
+  --secondary: #006FAD;
+  --secondary-rgb: 0, 111, 173;
+  --secondary-hover: #005A8C;
+  --secondary-light: #E9F4FB;
+  --secondary-light-hover: #D3E9F7;
+
+  --accent-amber: #F8B200;
+  --accent-cyan: #00B5F4;
+
+  --bg-main: #F6F7F9;
   --bg-card: #FFFFFF;
-  --text-main: #1F2937;
-  --text-muted: #6B7280;
-  --text-light: #9CA3AF;
-  --border-color: #E5E7EB;
-  --border-focus: #F58220;
+  --text-main: #111827;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
+  --border-color: #E5E9F0;
+  --border-focus: #FF5200;
   --success: #10B981;
   --success-light: #D1FAE5;
   --warning: #F59E0B;
   --warning-light: #FEF3C7;
   --danger: #EF4444;
   --danger-light: #FEE2E2;
-  --info: #3B82F6;
-  --info-light: #DBEAFE;
-  
+  --info: #006FAD;
+  --info-light: #E9F4FB;
+
+  --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
-  
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-xl: 0 20px 25px -5px rgba(245, 130, 32, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  
-  --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  
+
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 10px -2px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px -6px rgba(15, 23, 42, 0.10), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.14);
+  --shadow-glow-primary: 0 8px 20px -4px rgba(255, 82, 0, 0.35);
+  --shadow-glow-secondary: 0 8px 20px -4px rgba(0, 111, 173, 0.3);
+
+  --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: 'Exo 2', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* QUAN TRỌNG: Mọi CSS áp style lên element/class thật (không phải @theme hay :root biến số)
+   phải nằm trong @layer base|components để tương thích đúng với Tailwind v4 Cascade Layers.
+   CSS không có @layer (unlayered) LUÔN thắng CSS có layer bất kể độ đặc hiệu — từng có lúc
+   một rule "* { margin:0; padding:0; }" unlayered ở đây vô tình đè lên MỌI utility spacing
+   của Tailwind (p-8, mb-2, py-3, space-y-*, ...) trong toàn bộ app. Không lặp lại lỗi này:
+   luôn bọc CSS tùy biến trong @layer. */
 
-body {
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: var(--font-sans);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--text-main);
+  }
+
+  a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition-fast);
+  }
+
+  a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+  }
 }
 
 /* Animations */
@@ -76,9 +134,14 @@ body {
 }
 
 @keyframes pulseBorder {
-  0% { box-shadow: 0 0 0 0 rgba(245, 130, 32, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(245, 130, 32, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 130, 32, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(var(--primary-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes spin {
@@ -86,38 +149,7 @@ body {
   100% { transform: rotate(360deg); }
 }
 
-/* Typography & Markdown Rendering */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: var(--transition-fast);
-}
-
-a:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
-/* Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
-}
+@layer components {
 
 /* UTILITY CLASSES */
 .animate-fade {
@@ -130,6 +162,110 @@ a:hover {
 
 .animate-spin-fast {
   animation: spin 1s linear infinite;
+}
+
+/* Card & Surface primitives — dùng lại xuyên suốt app để đồng nhất bề mặt/độ sâu */
+.surface-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-card-hover {
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal), transform var(--transition-normal);
+}
+
+.surface-card-hover:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light-hover);
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: var(--shadow-glow-primary);
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-primary:disabled {
+  background: #E2E8F0;
+  color: #94A3B8;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--secondary);
+  color: #fff;
+  box-shadow: var(--shadow-glow-secondary);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--secondary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.badge-primary { background: var(--primary-light); color: var(--primary-hover); border-color: var(--primary-light-hover); }
+.badge-secondary { background: var(--secondary-light); color: var(--secondary); border-color: var(--secondary-light-hover); }
+.badge-success { background: var(--success-light); color: #047857; }
+.badge-warning { background: var(--warning-light); color: #B45309; }
+.badge-neutral { background: #F1F5F9; color: var(--text-muted); border-color: var(--border-color); }
+
+/* Focus ring nhất quán cho input/textarea/select */
+.focus-ring {
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.focus-ring:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+}
+
+/* Gradient thương hiệu Cam -> Xanh, dùng có chọn lọc cho các điểm nhấn hero */
+.brand-gradient {
+  background-image: linear-gradient(135deg, var(--primary) 0%, #FF8A3D 45%, var(--secondary) 100%);
+}
+
+.text-gradient-brand {
+  background-image: linear-gradient(90deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #EEF1F5 25%, #F7F8FA 37%, #EEF1F5 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
 }
 
 /* Markdown Report Styling */
@@ -231,3 +367,5 @@ a:hover {
   color: inherit;
   font-size: 0.85em;
 }
+
+} /* end @layer components */

@@ -368,8 +368,8 @@ export default function Home() {
   };
 
   if (isCheckingAuth) {
-    return <div className="h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-[#F58220] border-t-transparent rounded-full animate-spin"></div>
+    return <div className="h-screen bg-[#F6F7F9] flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
     </div>;
   }
 
@@ -431,7 +431,12 @@ export default function Home() {
         onViewReport={handleViewReport}
       />
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8F9FA]">
-        <TopNav onLogout={handleLogout} />
+        <TopNav
+          onLogout={handleLogout}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          title={activeTab === 'library' ? 'Thư viện báo cáo' : 'Nghiên cứu chiến lược'}
+          subtitle={activeTab === 'library' ? 'Quản lý & xem lại các báo cáo đã lưu' : 'Điều phối AI đa mô hình cho Giao Hàng Nhanh'}
+        />
         
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scroll-smooth">
           
@@ -447,14 +452,14 @@ export default function Home() {
           
           {/* STEP 2: LOADING (KẾT HỢP PLANNING & TỔNG HỢP NẾU SKIP) */}
           {(step === 'planning' || step === 'researching') && (
-          <div className="bg-white p-12 rounded-2xl shadow-md border border-gray-100 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
+          <div className="surface-card p-12 flex flex-col items-center justify-center space-y-6 text-center animate-fade min-h-[400px]">
             <div className="relative">
-              <div className="w-16 h-16 border-4 border-orange-100 border-t-[#F58220] rounded-full animate-spin-fast" />
-              <Sparkles className="w-6 h-6 text-[#F58220] absolute inset-0 m-auto animate-pulse" />
+              <div className="w-16 h-16 border-4 border-primary-light border-t-primary rounded-full animate-spin-fast" />
+              <Sparkles className="w-6 h-6 text-primary absolute inset-0 m-auto animate-pulse" />
             </div>
-            
+
             <div className="space-y-2 max-w-lg">
-              <h3 className="text-base md:text-lg font-bold text-gray-800">
+              <h3 className="text-base md:text-lg font-bold text-gray-900">
                 {step === 'planning' ? 'Đang Thiết Lập Kế Hoạch Nghiên Cứu' : 'Đang Điều Phối Hai Giai Đoạn'}
               </h3>
               <p className="text-xs md:text-sm text-gray-500 font-medium">
@@ -463,12 +468,12 @@ export default function Home() {
             </div>
 
             <div className="w-full max-w-xs bg-gray-100 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-[#F58220] h-full transition-all duration-1000" 
-                style={{ 
+              <div
+                className="bg-primary h-full transition-all duration-1000"
+                style={{
                   width: step === 'planning' ? '40%' : '75%',
                   animation: 'pulse 1.5s infinite'
-                }} 
+                }}
               />
             </div>
           </div>
@@ -476,11 +481,11 @@ export default function Home() {
 
         {step === 'form' && (
           <div className="space-y-12">
-            
-            <div className="bg-gradient-to-r from-orange-50 to-white p-6 rounded-2xl border border-orange-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+
+            <div className="bg-gradient-to-r from-primary-light to-white p-6 rounded-2xl border border-primary-light-hover flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div className="space-y-1">
-                <h2 className="text-lg md:text-xl font-black text-gray-800 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#F58220]" />
+                <h2 className="text-lg md:text-xl font-black text-gray-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
                   NexusAI: Nền Tảng Nghiên Cứu Chiến Lược
                 </h2>
                 <p className="text-xs text-gray-600 leading-relaxed max-w-3xl">
@@ -511,11 +516,11 @@ export default function Home() {
               isLoading={false}
             />
 
-            <div className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-6">
+            <div className="surface-card p-8 md:p-10 space-y-6">
               <div className="flex justify-between items-center border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <History className="w-5 h-5 text-[#F58220]" />
-                  <h3 className="font-bold text-gray-800 text-sm md:text-base">Lịch Sử Nghiên Cứu ({history.length})</h3>
+                  <History className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold text-gray-900 text-sm md:text-base">Lịch Sử Nghiên Cứu ({history.length})</h3>
                 </div>
                 <div className="flex items-center gap-1 text-[11px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-100">
                   <Database className="w-3.5 h-3.5 text-emerald-600" />
@@ -533,10 +538,10 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {history.map((item) => (
-                    <div 
+                    <div
                       key={item.id}
                       onClick={() => handleLoadHistoryItem(item)}
-                      className="p-4 rounded-xl border border-gray-200 hover:border-[#F58220] hover:bg-orange-50/20 cursor-pointer transition-all flex flex-col justify-between space-y-3 group"
+                      className="p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary-light/30 cursor-pointer transition-all flex flex-col justify-between space-y-3 group"
                     >
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -544,21 +549,21 @@ export default function Home() {
                             <Clock className="w-3 h-3" />
                             {item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : ''}
                           </span>
-                          <span className="text-[9px] font-bold text-[#F58220] bg-orange-50 px-2 py-0.5 rounded border border-orange-100">
+                          <span className="badge badge-primary text-[9px] px-2 py-0.5">
                             {item.synthesis_model.split(' ')[0]}
                           </span>
                         </div>
-                        <h4 className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-[#F58220] transition-colors">
+                        <h4 className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                           {item.query.scope}
                         </h4>
                         <p className="text-[10px] text-gray-500 line-clamp-2">
                           <strong>Role:</strong> {item.query.persona}
                         </p>
                       </div>
-                      
+
                       <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-500">
                         <span>{item.search_models.length} Search Bots</span>
-                        <span className="font-semibold text-[#F58220] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                        <span className="font-semibold text-primary flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                           Xem báo cáo
                           <ChevronRight className="w-3.5 h-3.5" />
                         </span>

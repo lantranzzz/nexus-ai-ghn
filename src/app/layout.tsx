@@ -16,9 +16,10 @@ export default function RootLayout({
         {/* Preconnect to Google Fonts domains for faster font loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Load only weights actually used (400-900), no italic, with font-display=swap */}
+        {/* Montserrat: font chính theo Brand Guideline GHN (mục 2.2 Phiên bản Digital).
+            Exo 2: font phối tương phản theo Guideline (mục 2.3), dùng cho các điểm nhấn hiển thị lớn. */}
         <link
-          href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Exo+2:wght@500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>

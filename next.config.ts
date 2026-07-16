@@ -23,7 +23,7 @@ const connectSrc = [
 
 // Content-Security-Policy: mặc định 'self', chỉ mở rộng đúng những nguồn app thực sự dùng.
 // - PDF.js worker được self-host tại /pdf.worker.min.mjs (same-origin) nên không cần CDN ngoài.
-// - img unsplash: ảnh nền màn hình đăng nhập.
+// - Nền màn hình đăng nhập dùng gradient CSS thuần (brand cam/xanh GHN), không còn phụ thuộc ảnh ngoài.
 // - 'unsafe-inline'/'unsafe-eval' cần cho Next.js hydration, styled-jsx và các thư viện
 //   parse file (pdfjs/xlsx). Đây là đánh đổi đã biết; siết chặt hơn cần chuyển sang CSP nonce qua middleware.
 const csp = [
@@ -35,7 +35,7 @@ const csp = [
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' data: blob: https://images.unsplash.com",
+  "img-src 'self' data: blob:",
   "font-src 'self' data: https://fonts.gstatic.com",
   `connect-src ${connectSrc}`,
   "upgrade-insecure-requests",

@@ -215,13 +215,13 @@ const parseMarkdownToReact = (text: string): React.ReactNode[] => {
       
       if (level === 1) {
         elements.push(
-          <h1 key={idx} className="text-xl md:text-2xl font-black text-[#F58220] border-b-2 border-orange-100 pb-2.5 mt-6 mb-4 flex items-center gap-2">
+          <h1 key={idx} className="text-xl md:text-2xl font-black text-primary border-b-2 border-primary-light pb-2.5 mt-6 mb-4 flex items-center gap-2">
             {formatted}
           </h1>
         );
       } else if (level === 2) {
         elements.push(
-          <h2 key={idx} className="text-base md:text-lg font-bold text-gray-800 border-l-4 border-[#F58220] pl-3 mt-5 mb-3">
+          <h2 key={idx} className="text-base md:text-lg font-bold text-gray-800 border-l-4 border-primary pl-3 mt-5 mb-3">
             {formatted}
           </h2>
         );
@@ -343,11 +343,13 @@ export default function ReportView({
     <div className="space-y-6 animate-fade">
       
       {/* Thanh công cụ hành động phía trên */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap justify-between items-center gap-4">
-        <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-[#F58220]" />
+      <div className="surface-card p-4 flex flex-wrap justify-between items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
+            <FileText className="w-[18px] h-[18px] text-primary" />
+          </div>
           <div>
-            <h4 className="text-xs md:text-sm font-bold text-gray-800">Báo Cáo Đã Sẵn Sàng</h4>
+            <h4 className="text-xs md:text-sm font-bold text-gray-900">Báo Cáo Đã Sẵn Sàng</h4>
             <p className="text-[11px] text-gray-500">Biên soạn hoàn chỉnh theo tiêu chuẩn Strategy Manager</p>
           </div>
         </div>
@@ -406,7 +408,7 @@ export default function ReportView({
           {/* Nút Tạo lại từ đầu */}
           <button
             onClick={onReset}
-            className="text-xs px-4 py-2 bg-[#F58220] hover:bg-[#E06B16] text-white font-bold rounded-lg flex items-center gap-1.5 shadow-sm hover:shadow-md cursor-pointer transition-colors"
+            className="btn-primary text-xs px-4 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
             Nghiên Cứu Mới
@@ -478,10 +480,10 @@ export default function ReportView({
 
       {/* Hiển thị Banner Chạy Thử Nghiệm */}
       {isMocked && (
-        <div className="bg-orange-50 border border-orange-200 text-gray-700 p-4 rounded-xl flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-[#F58220] shrink-0 mt-0.5" />
+        <div className="bg-primary-light border border-primary-light-hover text-gray-700 p-4 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
           <div className="text-xs leading-relaxed">
-            <p className="font-bold text-[#F58220] uppercase">Chạy thử nghiệm (Demo Mode)</p>
+            <p className="font-bold text-primary uppercase">Chạy thử nghiệm (Demo Mode)</p>
             <p className="mt-0.5 text-gray-600">
               Bạn đang xem báo cáo chiến lược giả lập chất lượng cao được thiết kế riêng cho mục tiêu nghiên cứu của bạn. Để chạy API thật lấy tin thời gian thực, hãy mở <strong>Sidebar cấu hình (hình Bánh răng)</strong> ở góc phải Header và nhập API Keys của các model.
             </p>
@@ -490,7 +492,7 @@ export default function ReportView({
       )}
 
       {/* NỘI DUNG CHÍNH CỦA BÁO CÁO PHÂN TÍCH */}
-      <div className="bg-white p-6 md:p-10 rounded-2xl shadow-md border border-gray-100">
+      <div className="surface-card p-6 md:p-10">
         <article className="markdown-body">
           {parseMarkdownToReact(report)}
         </article>
@@ -498,10 +500,10 @@ export default function ReportView({
         {/* PHẦN DANH SÁCH CÁC NGUỒN TRÍCH DẪN RIÊNG BIỆT Ở CUỐI */}
         <div className="mt-10 pt-8 border-t border-gray-200">
           <h4 className="text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <ExternalLink className="w-4 h-4 text-[#F58220]" />
+            <ExternalLink className="w-4 h-4 text-primary" />
             Chi Tiết Danh Sách Nguồn Trích Dẫn (Sources)
           </h4>
-          
+
           {sources && sources.length > 0 ? (
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pl-0 list-none">
               {sources.map((src, i) => {
@@ -509,14 +511,14 @@ export default function ReportView({
                 const innerContent = (
                   <>
                     <div className="space-y-1">
-                      <p className="text-xs font-bold text-gray-800 group-hover:text-[#F58220] transition-colors line-clamp-1">
+                      <p className="text-xs font-bold text-gray-800 group-hover:text-primary transition-colors line-clamp-1">
                         {src.title}
                       </p>
                       <p className="text-[10px] text-gray-500 font-mono truncate max-w-[280px]">
                         {src.url}
                       </p>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#F58220] transition-colors shrink-0 mt-0.5" />
+                    <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary transition-colors shrink-0 mt-0.5" />
                   </>
                 );
                 return (
@@ -526,7 +528,7 @@ export default function ReportView({
                         href={safeHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-3 bg-gray-50 hover:bg-orange-50 border border-gray-100 hover:border-orange-200 rounded-xl flex items-start justify-between gap-3 group transition-all h-full"
+                        className="p-3 bg-gray-50 hover:bg-primary-light border border-gray-100 hover:border-primary-light-hover rounded-xl flex items-start justify-between gap-3 group transition-all h-full"
                         style={{ textDecoration: 'none' }}
                       >
                         {innerContent}

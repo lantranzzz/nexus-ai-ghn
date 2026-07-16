@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, PenTool, CheckSquare, Square, Info } from 'lucide-react';
+import { Search, PenTool, Info, Check } from 'lucide-react';
 
 interface ModelSelectionProps {
   selectedSearchModels: string[];
@@ -42,15 +42,17 @@ export default function ModelSelection({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 animate-fade">
-      
-      {/* KHU VỰC 1: CHỌN MODEL TÌM TIN SONG SONG */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 surface-card p-8 md:p-10 animate-fade">
+
+      {/* KHU VỰC 1: CHỌN MODEL TÌM TIN SONG SONG (accent cam - hành động chính) */}
       <div className="lg:col-span-2 space-y-4">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-          <Search className="w-5 h-5 text-[#F58220]" />
+        <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+          <div className="w-9 h-9 rounded-xl bg-primary-light flex items-center justify-center shrink-0">
+            <Search className="w-[18px] h-[18px] text-primary" />
+          </div>
           <div>
-            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 1: Chọn Tool Tìm Tin (Tự Động Qua API)</h3>
-            <p className="text-xs text-gray-500">Model Tổng biên tập sẽ tạo prompt tối ưu, sau đó hệ thống tự động gọi API từng tool bằng Key bạn đã cấu hình trong Cài đặt</p>
+            <h3 className="font-bold text-gray-900 text-sm md:text-base">Khu vực 1 · Chọn Tool Tìm Tin</h3>
+            <p className="text-xs text-gray-500">Hệ thống tự động gọi API từng tool bằng Key bạn đã cấu hình trong Cài đặt</p>
           </div>
         </div>
 
@@ -58,28 +60,26 @@ export default function ModelSelection({
           {SEARCH_MODELS.map((model) => {
             const isSelected = selectedSearchModels.includes(model.name);
             return (
-              <div 
+              <div
                 key={model.id}
                 onClick={() => toggleSearchModel(model.name)}
-                className={`p-3 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'border-[#F58220] bg-orange-50/50 shadow-sm' 
-                    : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50/50'
+                className={`p-3.5 rounded-xl border-2 flex items-start gap-3 cursor-pointer transition-all ${
+                  isSelected
+                    ? 'border-primary bg-primary-light/60 shadow-sm'
+                    : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50/70'
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
                   {isSelected ? (
-                    <div className="w-4 h-4 bg-[#F58220] rounded flex items-center justify-center text-white">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
+                    <div className="w-4 h-4 bg-primary rounded flex items-center justify-center text-white">
+                      <Check className="w-3 h-3" strokeWidth={3} />
                     </div>
                   ) : (
-                    <div className="w-4 h-4 border border-gray-300 rounded" />
+                    <div className="w-4 h-4 border-2 border-gray-200 rounded" />
                   )}
                 </div>
-                <div>
-                  <h4 className="text-xs md:text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                <div className="min-w-0">
+                  <h4 className="text-xs md:text-sm font-semibold text-gray-900 truncate">
                     {model.name}
                   </h4>
                   <p className="text-[11px] text-gray-500 mt-0.5">{model.desc}</p>
@@ -91,13 +91,15 @@ export default function ModelSelection({
 
       </div>
 
-      {/* KHU VỰC 2: CHỌN MODEL TỔNG BIÊN TẬP */}
-      <div className="space-y-4 lg:border-l lg:border-gray-100 lg:pl-6">
-        <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
-          <PenTool className="w-5 h-5 text-[#F58220]" />
+      {/* KHU VỰC 2: CHỌN MODEL TỔNG BIÊN TẬP (accent xanh - vai trò điều phối/thẩm định) */}
+      <div className="space-y-4 lg:border-l lg:border-gray-100 lg:pl-8">
+        <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+          <div className="w-9 h-9 rounded-xl bg-secondary-light flex items-center justify-center shrink-0">
+            <PenTool className="w-[18px] h-[18px] text-secondary" />
+          </div>
           <div>
-            <h3 className="font-bold text-gray-800 text-sm md:text-base">Khu vực 2: Model Tổng Biên Tập</h3>
-            <p className="text-xs text-gray-500">Mô hình tư duy cao phụ trách lập kế hoạch & biên soạn báo cáo chiến lược</p>
+            <h3 className="font-bold text-gray-900 text-sm md:text-base">Khu vực 2 · Tổng Biên Tập</h3>
+            <p className="text-xs text-gray-500">Mô hình phụ trách lập kế hoạch &amp; biên soạn báo cáo</p>
           </div>
         </div>
 
@@ -110,7 +112,7 @@ export default function ModelSelection({
               <select
                 value={selectedSynthesisModel}
                 onChange={(e) => setSelectedSynthesisModel(e.target.value)}
-                className="w-full text-xs md:text-sm px-3.5 py-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] bg-white text-gray-800 font-medium transition-colors cursor-pointer appearance-none shadow-sm"
+                className="focus-ring w-full text-xs md:text-sm px-3.5 py-3 border-2 border-gray-200 rounded-xl bg-white text-gray-900 font-medium transition-colors cursor-pointer appearance-none shadow-sm"
               >
                 {SYNTHESIS_MODELS.map((model) => (
                   <option key={model.id} value={model.name}>
@@ -126,11 +128,11 @@ export default function ModelSelection({
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+          <div className="bg-secondary-light/60 p-4 rounded-xl space-y-2 border border-secondary-light-hover">
             <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-[#F58220] shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-secondary shrink-0 mt-0.5" />
               <p className="text-[11px] text-gray-600 leading-normal">
-                <strong>Vai trò của Tổng Biên Tập:</strong> Model này sẽ viết prompt tối ưu ở <strong>Giai đoạn 1</strong>, sau đó gom toàn bộ dữ liệu từ các model Tìm Tin, dịch thuật ngữ chuyên ngành, kiểm tra đối chiếu chéo (Fact-check) và soạn thảo báo cáo Markdown ở <strong>Giai đoạn 2</strong>.
+                <strong className="text-gray-800">Vai trò của Tổng Biên Tập:</strong> Model này sẽ viết prompt tối ưu ở <strong className="text-gray-800">Giai đoạn 1</strong>, sau đó gom toàn bộ dữ liệu từ các model Tìm Tin, dịch thuật ngữ chuyên ngành, kiểm tra đối chiếu chéo (Fact-check) và soạn thảo báo cáo Markdown ở <strong className="text-gray-800">Giai đoạn 2</strong>.
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Target, Users, BarChart3, ArrowRight, Paperclip, Loader2 } from 'lucide-react';
+import { Target, Users, BarChart3, ShieldCheck, BookOpen, ArrowRight, Paperclip, Loader2 } from 'lucide-react';
 
 interface ResearchFormProps {
   scope: string;
@@ -14,6 +14,21 @@ interface ResearchFormProps {
   setKnowledge: (val: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
+}
+
+const FIELD_ICONS = { S: Target, P: Users, A: BarChart3, R: ShieldCheck, K: BookOpen };
+
+function FieldLabel({ letter, title }: { letter: keyof typeof FIELD_ICONS; title: string }) {
+  const Icon = FIELD_ICONS[letter];
+  return (
+    <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-2">
+      <span className="w-5 h-5 rounded-md bg-primary-light text-primary flex items-center justify-center text-[10px] font-black shrink-0">
+        {letter}
+      </span>
+      <Icon className="w-4 h-4 text-primary shrink-0" />
+      {title}
+    </label>
+  );
 }
 
 export default function ResearchForm({
@@ -38,7 +53,7 @@ export default function ResearchForm({
     if (!file) return;
 
     setIsReadingFile(true);
-    
+
     try {
       // Import dynamically to prevent SSR build issues with pdfjs-dist and mammoth
       const { parseFileToText } = await import('@/lib/fileParser');
@@ -82,35 +97,35 @@ export default function ResearchForm({
   const isFormValid = scope.trim() !== '' && persona.trim() !== '' && action.trim() !== '';
 
   return (
-    <form onSubmit={onSubmit} className="bg-white p-8 md:p-10 rounded-2xl shadow-md border border-gray-100 space-y-8 animate-fade">
-      
+    <form onSubmit={onSubmit} className="surface-card p-8 md:p-10 space-y-8 animate-fade">
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
         <div>
-          <h3 className="text-base md:text-lg font-bold text-gray-800">Định Hướng Nghiên Cứu Chiến Lược (Áp dụng SPARK Method)</h3>
-          <p className="text-xs text-gray-500">Cung cấp bối cảnh rõ ràng theo chuẩn S-P-A-R-K để AI nghiên cứu chính xác nhất</p>
+          <h3 className="text-base md:text-lg font-bold text-gray-900">Định Hướng Nghiên Cứu Chiến Lược</h3>
+          <p className="text-xs text-gray-500">Áp dụng chuẩn <span className="font-semibold text-primary">S-P-A-R-K</span> — cung cấp bối cảnh rõ ràng để AI nghiên cứu chính xác nhất</p>
         </div>
-        
+
         {/* Nút gợi ý nhanh */}
         <div className="flex flex-wrap gap-2">
           <span className="text-[11px] font-semibold text-gray-400 self-center uppercase mr-1">Gợi ý mẫu:</span>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => applyQuickTemplate('j&t')}
-            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-[#F58220] rounded-lg text-gray-600 hover:text-[#F58220] transition-colors cursor-pointer"
+            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-primary-light border border-gray-200 hover:border-primary rounded-lg text-gray-600 hover:text-primary transition-colors cursor-pointer"
           >
-            Định Giá & Chặng Cuối
+            Định Giá &amp; Chặng Cuối
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => applyQuickTemplate('ninjavan')}
-            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-[#F58220] rounded-lg text-gray-600 hover:text-[#F58220] transition-colors cursor-pointer"
+            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-primary-light border border-gray-200 hover:border-primary rounded-lg text-gray-600 hover:text-primary transition-colors cursor-pointer"
           >
-            Kho Thông Minh & Fulfillment
+            Kho Thông Minh &amp; Fulfillment
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => applyQuickTemplate('tiktok')}
-            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-orange-50 border border-gray-200 hover:border-[#F58220] rounded-lg text-gray-600 hover:text-[#F58220] transition-colors cursor-pointer"
+            className="text-[11px] px-2.5 py-1.5 bg-gray-50 hover:bg-primary-light border border-gray-200 hover:border-primary rounded-lg text-gray-600 hover:text-primary transition-colors cursor-pointer"
           >
             Xuyên Biên Giới (Cross-Border)
           </button>
@@ -120,89 +135,74 @@ export default function ResearchForm({
       <div className="space-y-5">
         {/* Ô 1: S - SCOPE */}
         <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-[#F58220]" />
-            1. SCOPE - Phạm vi nghiên cứu (Kích hoạt khi nào?)
-          </label>
+          <FieldLabel letter="S" title="SCOPE — Phạm vi nghiên cứu (Kích hoạt khi nào?)" />
           <textarea
             required
             rows={2}
             value={scope}
             onChange={(e) => setScope(e.target.value)}
             placeholder="Ví dụ: Đợt nghiên cứu này nhằm phân tích giá cước của đối thủ để làm báo cáo chiến lược..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+            className="focus-ring w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl resize-none text-gray-900"
           />
         </div>
 
         {/* Ô 2: P - PERSONA */}
         <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-[#F58220]" />
-            2. PERSONA - Vai trò & Đối tượng (Ai làm? Cho ai?)
-          </label>
+          <FieldLabel letter="P" title="PERSONA — Vai trò & Đối tượng (Ai làm? Cho ai?)" />
           <textarea
             required
             rows={2}
             value={persona}
             onChange={(e) => setPersona(e.target.value)}
             placeholder="Ví dụ: Bạn là Chuyên gia phân tích chiến lược. Đối tượng đọc báo cáo là CEO..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+            className="focus-ring w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl resize-none text-gray-900"
           />
         </div>
 
         {/* Ô 3: A - ACTION */}
         <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <BarChart3 className="w-4 h-4 text-[#F58220]" />
-            3. ACTION - Quy trình thực thi (Các bước cần AI làm rõ)
-          </label>
+          <FieldLabel letter="A" title="ACTION — Quy trình thực thi (Các bước cần AI làm rõ)" />
           <textarea
             required
             rows={3}
             value={action}
             onChange={(e) => setAction(e.target.value)}
             placeholder="Ví dụ: 1. Tìm bảng giá J&T. 2. So sánh với GHN. 3. Đề xuất phương án giảm giá cước..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+            className="focus-ring w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl resize-none text-gray-900"
           />
         </div>
 
         {/* Ô 4: R - RULES */}
         <div className="space-y-1.5">
-          <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-[#F58220]" />
-            4. RULES - Ràng buộc (MUST: Bắt buộc / MUST NOT: Cấm)
-          </label>
+          <FieldLabel letter="R" title="RULES — Ràng buộc (MUST: Bắt buộc / MUST NOT: Cấm)" />
           <textarea
             required
             rows={3}
             value={rules}
             onChange={(e) => setRules(e.target.value)}
             placeholder="Ví dụ: MUST: Trình bày dạng bảng so sánh. MUST NOT: Không dùng dữ liệu trước năm 2024..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-none text-gray-800"
+            className="focus-ring w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl resize-none text-gray-900"
           />
         </div>
 
         {/* Ô 5: K - KNOWLEDGE */}
         <div className="space-y-1.5 relative">
           <div className="flex items-center justify-between">
-            <label className="text-xs md:text-sm font-bold text-gray-700 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-gray-400" />
-              5. KNOWLEDGE - Kiến thức nền (Ví dụ mẫu, từ khóa tham khảo)
-            </label>
-            
+            <FieldLabel letter="K" title="KNOWLEDGE — Kiến thức nền (Ví dụ mẫu, từ khóa tham khảo)" />
+
             <div>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileUpload} 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
                 accept=".txt,.md,.csv,.json,.pdf,.docx,.xlsx,.pptx"
-                className="hidden" 
+                className="hidden"
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isReadingFile}
-                className="flex items-center gap-1.5 text-xs font-semibold text-[#F58220] hover:text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover bg-primary-light hover:bg-primary-light-hover px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
               >
                 {isReadingFile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Paperclip className="w-4 h-4" />}
                 Đính kèm File
@@ -214,7 +214,7 @@ export default function ResearchForm({
             value={knowledge}
             onChange={(e) => setKnowledge(e.target.value)}
             placeholder="Ví dụ: Nhớ chú ý tới Mega Hub mới mở của Viettel Post, hoặc đính kèm file tài liệu..."
-            className="w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl outline-none focus:border-[#F58220] focus:ring-1 focus:ring-[#F58220] transition-all resize-y text-gray-800"
+            className="focus-ring w-full text-xs md:text-sm p-3 border-2 border-gray-200 rounded-xl resize-y text-gray-900"
           />
         </div>
       </div>
@@ -224,11 +224,7 @@ export default function ResearchForm({
         <button
           type="submit"
           disabled={isLoading || !isFormValid}
-          className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-md transition-all text-xs md:text-sm cursor-pointer ${
-            isLoading || !isFormValid
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-              : 'bg-[#F58220] hover:bg-[#E06B16] text-white hover:shadow-lg'
-          }`}
+          className="btn-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-xs md:text-sm cursor-pointer"
         >
           {isLoading ? (
             <>

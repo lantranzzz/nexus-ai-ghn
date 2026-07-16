@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Edit2, Play, ChevronLeft, Info, AlertTriangle } from 'lucide-react';
+import { Eye, Edit2, Play, ChevronLeft, Info, AlertTriangle, Copy } from 'lucide-react';
 
 interface PromptReviewProps {
   prompts: Record<string, string>;
@@ -31,16 +31,16 @@ export default function PromptReview({
   const modelNames = Object.keys(prompts);
 
   return (
-    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-md border border-gray-100 space-y-6 animate-fade">
-      
+    <div className="surface-card p-6 md:p-8 space-y-6 animate-fade">
+
       {/* Header */}
       <div className="border-b border-gray-100 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-[#F58220] uppercase bg-orange-50 px-2.5 py-1 rounded-full">Giai Đoạn 1 Hoàn Tất</span>
-          <h3 className="text-base md:text-lg font-bold text-gray-800 mt-2">Duyệt Kế Hoạch & Hiệu Chỉnh Prompts</h3>
+          <span className="badge badge-primary text-xs px-2.5 py-1">Giai Đoạn 1 Hoàn Tất</span>
+          <h3 className="text-base md:text-lg font-bold text-gray-900 mt-2">Duyệt Kế Hoạch &amp; Hiệu Chỉnh Prompts</h3>
           <p className="text-xs text-gray-500">Xem và tinh chỉnh các câu lệnh được biên soạn tối ưu cho từng chatbot trước khi thực thi</p>
         </div>
-        
+
         <button
           onClick={onBack}
           disabled={isLoading}
@@ -52,15 +52,15 @@ export default function PromptReview({
       </div>
 
       {/* Tóm tắt kế hoạch của Tổng biên tập */}
-      <div className="bg-orange-50/60 border border-orange-100 p-4 rounded-xl space-y-2">
-        <h4 className="text-xs font-bold text-[#F58220] uppercase tracking-wider flex items-center gap-1.5">
+      <div className="bg-primary-light/60 border border-primary-light-hover p-4 rounded-xl space-y-2">
+        <h4 className="text-xs font-bold text-primary-hover uppercase tracking-wider flex items-center gap-1.5">
           <Info className="w-4 h-4" />
           Kế Hoạch Từ Tổng Biên Tập
         </h4>
         <p className="text-xs md:text-sm text-gray-700 leading-relaxed italic">
           "{planningSummary}"
         </p>
-        
+
         {isMocked && (
           <div className="flex items-center gap-1.5 text-[11px] text-amber-700 font-semibold mt-1">
             <AlertTriangle className="w-3.5 h-3.5" />
@@ -72,33 +72,33 @@ export default function PromptReview({
       {/* Danh sách Prompts cho từng model */}
       <div className="space-y-5">
         <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Cơ cấu Prompt riêng biệt cho các Search Models ({modelNames.length})</h4>
-        
+
         <div className="space-y-4">
           {modelNames.map((model) => {
             let languageBadge = 'Tiếng Việt';
-            let badgeColor = 'bg-blue-50 text-blue-700 border-blue-100';
-            
+            let badgeClass = 'badge-secondary';
+
             if (model.includes('Perplexity') || model.toLowerCase().includes('sonar')) {
               languageBadge = 'Tiếng Anh (Tối ưu tìm tin quốc tế)';
-              badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-100';
+              badgeClass = 'badge-secondary';
             } else if (model.includes('Moonshot') || model.includes('Kimi')) {
               languageBadge = 'Tiếng Trung & Việt (Tối ưu chuỗi cung ứng Trung Quốc)';
-              badgeColor = 'bg-red-50 text-red-700 border-red-100';
+              badgeClass = 'badge-warning';
             } else if (model.includes('DeepSeek')) {
               languageBadge = 'Tiếng Việt logic cao';
-              badgeColor = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+              badgeClass = 'badge-success';
             }
 
             return (
-              <div key={model} className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                
+              <div key={model} className="border border-gray-200 rounded-xl overflow-hidden surface-card-hover">
+
                 {/* Model Header */}
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <Edit2 className="w-4 h-4 text-[#F58220]" />
-                    <span className="text-xs md:text-sm font-bold text-gray-800">{model}</span>
+                    <Edit2 className="w-4 h-4 text-primary" />
+                    <span className="text-xs md:text-sm font-bold text-gray-900">{model}</span>
                   </div>
-                  <span className={`text-[10px] md:text-xs font-semibold px-2 py-0.5 rounded-full border ${badgeColor}`}>
+                  <span className={`badge ${badgeClass} text-[10px] md:text-xs px-2 py-0.5`}>
                     {languageBadge}
                   </span>
                 </div>
@@ -109,17 +109,15 @@ export default function PromptReview({
                     rows={6}
                     value={prompts[model]}
                     onChange={(e) => handlePromptChange(model, e.target.value)}
-                    className="w-full text-xs md:text-sm p-3 bg-gray-50/50 hover:bg-white focus:bg-white border border-gray-200 focus:border-[#F58220] rounded-lg outline-none transition-all resize-y font-mono leading-relaxed text-gray-700"
+                    className="focus-ring w-full text-xs md:text-sm p-3 bg-gray-50/50 hover:bg-white border border-gray-200 rounded-lg resize-y font-mono leading-relaxed text-gray-700"
                     placeholder={`Viết prompt cho ${model}...`}
                   />
                   <div className="flex justify-end mt-2">
                     <button
                       onClick={() => navigator.clipboard.writeText(prompts[model])}
-                      className="text-[11px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="text-[11px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
+                      <Copy className="w-3.5 h-3.5" />
                       Copy Prompt
                     </button>
                   </div>
@@ -140,10 +138,10 @@ export default function PromptReview({
         <button
           onClick={onConfirm}
           disabled={isLoading || modelNames.length === 0}
-          className={`px-8 py-3.5 rounded-xl font-bold flex items-center gap-2.5 shadow-md hover:shadow-lg transition-all text-xs md:text-sm cursor-pointer ${
+          className={`px-8 py-3.5 rounded-xl font-bold flex items-center gap-2.5 text-xs md:text-sm cursor-pointer transition-all ${
             isLoading
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-              : 'bg-[#F58220] hover:bg-[#E06B16] text-white animate-pulse-border'
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'btn-primary animate-pulse-border'
           }`}
           style={{
             animation: isLoading ? 'none' : 'pulseBorder 2s infinite'
