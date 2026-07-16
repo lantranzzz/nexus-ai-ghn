@@ -79,12 +79,20 @@ export default function SettingsSidebar({ isOpen, onClose }: SettingsSidebarProp
     }
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-      if (supabaseConnected && supabase) {
-        await supabase.auth.signOut();
-      }
       localStorage.removeItem('nexusai_auth');
+      
+      // Xóa dứt điểm token để ngăn treo UI
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      if (supabaseConnected && supabase) {
+        supabase.auth.signOut().catch(e => console.error(e));
+      }
       window.location.reload();
     }
   };

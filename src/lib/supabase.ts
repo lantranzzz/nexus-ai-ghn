@@ -159,10 +159,16 @@ export const getResearches = async (): Promise<{ success: boolean; data: Researc
       let userId: string | null = null;
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<{ data: { session: any }, error: any }>((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 2000)
+        );
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as { data: { session: any }, error: any };
         token = session?.access_token || null;
         userId = session?.user?.id || null;
-      } catch (e) {}
+      } catch (e) {
+        console.warn('getSession timeout or error in getResearches, falling back to localStorage');
+      }
 
       // Nếu getSession() thất bại, đọc thẳng từ localStorage
       if (!token || !userId) {
